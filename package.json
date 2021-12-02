@@ -1,6 +1,6 @@
 {
   "name": "data-context",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Data context library for browser and node.js",
   "keywords": [
     "data",

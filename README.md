@@ -7,7 +7,7 @@ Data context library for browser and node.js
 
 ## Installing
 
-`npm install file-lockdown`
+`npm install data-context`
 
 or
 
