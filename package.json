@@ -1,0 +1,28 @@
+{
+  "name": "data-context",
+  "version": "1.0.0",
+  "description": "Data context library for browser and node.js",
+  "keywords": [
+    "data",
+    "context",
+    "model",
+    "data-model"
+  ],
+  "author": "Manuel Lõhmus <manuel@hauss.ee>",
+  "license": "MIT",
+  "main": "index.min.js",
+  "browser": "index.min.js",
+  "files": [
+    "index.min.js",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "README.html"
+  ],
+  "homepage": "https://github.com/manuel-lohmus/data-context#readme",
+  "bugs": "https://github.com/manuel-lohmus/data-context/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manuel-lohmus/data-context.git"
+  }
+}
