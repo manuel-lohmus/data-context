@@ -1,4 +1,4 @@
-/** Data Context functions for Browser and node.js. @preserve Copyright (c) 2020 Manuel Lõhmus.*/
+/** Data Context functions for Browser and node.js. @preserve Copyright (c) 2020 Manuel LÃµhmus.*/
 "use strict";
 
 (function (global, factory) {
@@ -193,12 +193,12 @@
                     else
                         Object.keys(_binds[propertyName]).forEach(function (key) {
 
-                            if (!_binds[propertyName][key].element
-                                || _binds[propertyName][key].element && _binds[propertyName][key].element.isConnected !== undefined && !_binds[propertyName][key].element.isConnected
-                                || _binds[propertyName][key].element && !(_binds[propertyName][key].element.parentElement || _binds[propertyName][key].element.parentNode)
+                            if (_binds[propertyName][key] && !_binds[propertyName][key].element
+                                || _binds[propertyName][key] && _binds[propertyName][key].element && _binds[propertyName][key].element.isConnected !== undefined && !_binds[propertyName][key].element.isConnected
+                                || _binds[propertyName][key] && _binds[propertyName][key].element && !(_binds[propertyName][key].element.parentElement || _binds[propertyName][key].element.parentNode)
                             ) {
                                 //debugger;
-                                if (_binds[propertyName][key].element
+                                if (_binds[propertyName][key] && _binds[propertyName][key].element
                                     && typeof _binds[propertyName][key].element.removeBinding === "function") {
                                     _binds[propertyName][key].element.removeBinding();
                                 }
@@ -272,8 +272,7 @@
                                     || (value && value.value || oldValue && oldValue.value)
                                     && value + "" !== oldValue + "")) {
 
-                                if (values[propertyName] && typeof values[propertyName].init === "function"
-                                    && !IsItem(value) && !IsCollection(value)) {
+                                if (IsItem(values[propertyName]) && !IsItem(value) && !IsCollection(value)) {
                                     values[propertyName].init(value);
                                 }
 
@@ -296,6 +295,13 @@
                                         value = val;
                                         values[propertyName] = value;
                                     }
+                                }
+                                else if (propertyName !== "value" && !IsItem(value) && !IsCollection(value)) {
+                                    values[propertyName] = DC.Item();
+                                    values[propertyName].defineProperty("value", oldValue, setterFn);
+                                    setTimeout(function () {
+                                        values[propertyName].value = value;
+                                    });
                                 }
                                 else {
                                     values[propertyName] = value;
@@ -948,6 +954,21 @@
 
                     if (!_binds[propertyName])
                         _binds[propertyName] = {};
+                    else
+                        Object.keys(_binds[propertyName]).forEach(function (key) {
+
+                            if (_binds[propertyName][key] && !_binds[propertyName][key].element
+                                || _binds[propertyName][key] && _binds[propertyName][key].element && _binds[propertyName][key].element.isConnected !== undefined && !_binds[propertyName][key].element.isConnected
+                                || _binds[propertyName][key] && _binds[propertyName][key].element && !(_binds[propertyName][key].element.parentElement || _binds[propertyName][key].element.parentNode)
+                            ) {
+                                //debugger;
+                                if (_binds[propertyName][key] && _binds[propertyName][key].element
+                                    && typeof _binds[propertyName][key].element.removeBinding === "function") {
+                                    _binds[propertyName][key].element.removeBinding();
+                                }
+                                delete _binds[propertyName][key];
+                            }
+                        });
 
                     _binds[propertyName][bindingId] = binding;
                     _binds[propertyName][bindingId].element = element;

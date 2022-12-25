@@ -1,6 +1,6 @@
 {
   "name": "data-context",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Data context library for browser and node.js",
   "keywords": [
     "data",
@@ -8,7 +8,7 @@
     "model",
     "data-model"
   ],
-  "author": "Manuel Lõhmus <manuel@hauss.ee>",
+  "author": "Manuel LÃµhmus <manuel@hauss.ee>",
   "license": "MIT",
   "main": "index.min.js",
   "browser": "index.min.js",
