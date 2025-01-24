@@ -11,6 +11,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.tgz
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -363,3 +364,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/.gitattributes
+/.gitignore
+/.gitignore
+/data-context.esproj
+/.gitattributes

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>DC Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/data-context@2/index.min.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/data-context@2/index.test.min.js"></script>
+    <script type="text/javascript" src="./index.test.js"></script>
+</head>
+<body>
+    <h3>DC Test</h3>
+    <p>Press F12. Console unit testing results.</p>
+    <progress id="progress"></progress>
+    <p id="output"></p>
+    <script id="worker1" type="module/worker">
+
+        onmessage = function onmessage(event) {
+
+            test(event.data);
+        }
+
+        function test(href) {
+
+            (async function () {
+                
+                importScripts(href.replace("index.test.html", "index.js"));
+
+                var DC = this['data-context'],
+                    { Parse, ParsePromise, Stringify } = DC;
+
+                var obj =
+                {
+                    '-metadata': [
+                        "metadata"
+                    ],
+                    s: "a",
+                    o: {
+                        '-metadata': "meta",
+                        n: 1,
+                        a: [
+                            123,
+                            "abc"
+                        ],
+                        //toJSON: function () {
+                        //    return {};
+                        //}
+                    },
+                    arr: [
+                        456,
+                        "def"
+                    ]
+                };
+
+                var startTime, endTime, json, dc;
+
+                json = Stringify(obj, null, 4);
+                //log(json);
+                dc = Parse(json, DC);
+                json = JSON.stringify(dc, null, 4);
+                //log(json);
+
+                log(`\n*****************************************\n`);
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { JSON.parse(json); }
+                endTime = performance.now();
+                log("10000 x JSON.parse(json)                   : ", (endTime - startTime).toFixed(2), "ms");
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { Parse(json, null); }
+                endTime = performance.now();
+                log("10000 x DC.Parse(json)                       : ", (endTime - startTime).toFixed(2), "ms");
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { await ParsePromise(json, null); }
+                endTime = performance.now();
+                log("10000 x DC.ParsePromise(json)          : ", (endTime - startTime).toFixed(2), "ms");
+
+                log();
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { JSON.parse(json, (k, v) => DC(v)); }
+                endTime = performance.now();
+                log("10000 x JSON.parse(json, DC)           : ", (endTime - startTime).toFixed(2), "ms");
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { Parse(json, DC); }
+                endTime = performance.now();
+                log("10000 x DC.Parse(json, DC)               : ", (endTime - startTime).toFixed(2), "ms");
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { await ParsePromise(json, DC); }
+                endTime = performance.now();
+                log("10000 x DC.ParsePromise(json, DC)  : ", (endTime - startTime).toFixed(2), "ms");
+
+                log(`\n*****************************************\n`);
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { JSON.stringify(obj); }
+                endTime = performance.now();
+                log("10000 x JSON.stringify(obj)               : ", (endTime - startTime).toFixed(2), "ms");
+
+                for (var i = 0; i < 10000; i++) { Stringify(obj); }
+                endTime = performance.now();
+                log("10000 x DC.Stringify(obj)                   : ", (endTime - startTime).toFixed(2), "ms");
+
+                log();
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { JSON.stringify(dc); }
+                endTime = performance.now();
+                log("10000 x JSON.stringify(dc)                : ", (endTime - startTime).toFixed(2), "ms");
+
+                for (var i = 0; i < 10000; i++) { Stringify(dc); }
+                endTime = performance.now();
+                log("10000 x DC.Stringify(dc)                    : ", (endTime - startTime).toFixed(2), "ms");
+
+                for (var i = 0; i < 10000; i++) { dc.toString(); }
+                endTime = performance.now();
+                log("10000 x dc.toString()                          : ", (endTime - startTime).toFixed(2), "ms");
+
+                log();
+
+                startTime = performance.now();
+                for (var i = 0; i < 10000; i++) { JSON.stringify(dc, null, 2); }
+                endTime = performance.now();
+                log("10000 x JSON.stringify(dc, null, 2)   : ", (endTime - startTime).toFixed(2), "ms");
+
+                for (var i = 0; i < 10000; i++) { Stringify(dc, null, 2); }
+                endTime = performance.now();
+                log("10000 x DC.Stringify(dc, null, 2)       : ", (endTime - startTime).toFixed(2), "ms");
+
+                log(`\n*****************************************\n`);
+
+                postMessage("\r\r");
+
+                function log() {
+
+                    var msg = '';
+
+                    for (let i = 0; i < arguments.length; i++) {
+                        msg += htmlEntities(arguments[i]);
+                    }
+
+                    msg += "<br>";
+                    postMessage(msg);
+
+                    function htmlEntities(str) {
+                        return str
+                            //.replace(/&/g, '&amp;')
+                            //.replace(/&/g, '&amp;')
+                            //.replace(/</g, '&lt;')
+                            //.replace(/>/g, '&gt;')
+                            //.replace(/"/g, '&quot;')
+                            .replace(/\n/g, '<br>')
+                            .replace(/\s/g, '&nbsp;');
+                    }
+                }
+
+            })();
+        }
+    </script>
+    <script type="text/javascript">
+
+        if (this['data-context'] === undefined) { output.innerHTML = "'DC' library not found!" }
+
+        output.innerHTML = '';
+        var blob = new Blob([document.getElementById('worker1').textContent], { type: "text/javascript" });
+
+        setTimeout(function () {
+
+            const worker = new Worker(window.URL.createObjectURL(blob));
+            worker.postMessage(location.href);
+
+            worker.addEventListener('message', event => {
+
+                if (event.data === "\r\r") {
+                    return document.getElementById("progress").hidden = true;
+                }
+
+                output.innerHTML += event.data;
+            });
+        }, 100);
+    </script>
+</body>
+</html>

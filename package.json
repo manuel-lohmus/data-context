@@ -1,28 +1,61 @@
 {
   "name": "data-context",
-  "version": "1.0.3",
-  "description": "Data context library for browser and node.js",
+  "description": "Watch data changes in the browser and node.j",
+  "version": "2.0.0-beta.1",
+  "license": "MIT",
   "keywords": [
+    "on",
+    "change",
+    "watch",
+    "object",
+    "array",
+    "changes",
+    "observe",
+    "watcher",
+    "observer",
+    "proxy",
+    "proxies",
+    "event",
+    "listener",
+    "json",
+    "metadata",
+    "emit",
     "data",
     "context",
     "model",
     "data-model"
   ],
+  "main": "index.js",
+  "browser": "index.js",
+  "types": "index.d.ts",
+  "module": "wrapper.mjs",
+  "exports": {
+    ".": {
+      "browser": "./index.js",
+      "import": "./wrapper.mjs",
+      "require": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "node index.test"
+  },
   "author": "Manuel Lõhmus <manuel@hauss.ee>",
-  "license": "MIT",
-  "main": "index.min.js",
-  "browser": "index.min.js",
   "files": [
-    "index.min.js",
+    "index.d.ts",
+    "index.js",
+    "index.test.html",
+    "index.test.js",
     "LICENSE",
     "package.json",
     "README.md",
-    "README.html"
+    "wrapper.mjs"
   ],
   "homepage": "https://github.com/manuel-lohmus/data-context#readme",
   "bugs": "https://github.com/manuel-lohmus/data-context/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/manuel-lohmus/data-context.git"
-  }
+  },
+  "funding": "https://manuel-lohmus.github.io/data-context/README.html#license"
 }

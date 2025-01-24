@@ -1,1611 +1,2532 @@
-/** Data Context functions for Browser and node.js. @preserve Copyright (c) 2020 Manuel LÃµhmus.*/
+/**  Copyright (c) 2024, Manuel Lõhmus (MIT License). */
 "use strict";
 
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? //if node
-        module.exports = factory(exports) : //node
-        (global = typeof globalThis !== 'undefined' ? globalThis : global || self,
-            global.DC = factory(global.DC = {}));
-}(this, (function (DC) {
+exportLibrary(this, "data-context", (function factory() {
 
-    if (DC && DC.name === "DC") return DC;
-    else DC.name = "DC";
+    /**
+     * Create a new proxy object with the same structure as the original object. 
+     * With the ability to listen to changes in the object 
+     * and the ability to restore the original object.
+     * @param {any} value Value.
+     * @param {string} propertyName Property name. Default is null. 
+     * @param {any} parent Parent. Default is null. 
+     * @returns {Proxy} Returns a proxy object. 
+     */
+    function createDataContext(value, propertyName = null, parent = null) {
 
-    var isNode = typeof exports !== 'undefined';
-    DC.IsDebuger = false;
-    DC.IsAutoProperty = false;
+        if (createDataContext === this?.constructor) { throw new Error('This function must be used without the `new` keyword.'); }
 
-    //#region function for IE
+        var type = _typeof(value);
 
-    if (!isNode) {
+        if (value?._isDataContext || type !== "object" && type !== "array") { return value; }
 
-        /** String */
-        String.prototype.startsWith || Object.defineProperty(String.prototype, 'startsWith', {
-            value: function (search, position) {
-                var pos = position > 0 ? position | 0 : 0;
-                return typeof search === "string" && this.substring(pos, pos + search.length) === search;
-            }
-        });
-        String.prototype.endsWith || Object.defineProperty(String.prototype, 'endsWith', {
-            value: function (search, length) {
-                length = (length === undefined || length > this.length) ? this.length : length;
-                return typeof search === "string" && this.substring(length - search.length, length) === search;
-            }
-        });
-        String.prototype.trimStart || Object.defineProperty(String.prototype, 'trimStart', {
-            value: function (str) {
-                if (this.startsWith(str)) {
-                    return this.substring(str.length);
+        var proxy = null;
+
+        Object.defineProperties(value, {
+
+            _isDataContext: { value: true, writable: false, configurable: false, enumerable: false },
+
+            _isModified: { value: false, writable: true, configurable: false, enumerable: false },
+
+            _modified: { value: [], writable: false, configurable: false, enumerable: false },
+
+            _propertyName: {
+                configurable: false, enumerable: false,
+
+                get: function () { return propertyName; },
+
+                set: function (v) { propertyName = v; }
+            },
+
+            _parent: {
+                configurable: false, enumerable: false,
+
+                get: function () {
+
+                    if (parent === null) { return null; }
+
+                    if (_isMyParent()) { return parent; }
+
+                    return null;
+                },
+
+                set: function (v) { parent = v; }
+            },
+
+            toString: {
+                writable: true, configurable: false, enumerable: false,
+
+                value: function toString() {
+
+                    if (type === "object") { return "{" + Object.keys(this).map(function (k) { return _string(k) + ":" + _string(value[k]); }).join(",") + "}"; }
+                    if (type === "array") { return "[" + this.map(function (v) { return _string(v); }).join(",") + "]"; }
+
+                    return "undefined";
+
+                    function _string(val) {
+
+                        if (val?._isDataContext) { return val.toString(); }
+
+                        var t = typeof val;
+
+                        if (t === "string") { return '"' + val + '"'; }
+                        if (t === "boolean") { return Boolean.prototype.toString.call(val); }
+                        if (t === "number") { return Number.prototype.toString.call(val); }
+                        if (val === null) { return "null"; }
+                        if (Array.isArray(val)) { return "[" + val.map(function (v) { return _string(v); }).join(",") + "]"; }
+                        if (t === "object") { return "{" + Object.keys(val).map(function (k) { return _string(k) + ":" + _string(val[k]); }).join(",") + "}"; }
+
+                        return "undefined";
+                    }
                 }
-                return this.replace(/^[\s\uFEFF\xA0]+/g, '');
-            }
-        });
-        String.prototype.trimEnd || Object.defineProperty(String.prototype, 'trimEnd', {
-            value: function (str) {
-                if (this.endsWith(str)) {
-                    return this.substring(0, this.length - str.length);
+            },
+
+            overwritingData: {
+                writable: true, configurable: false, enumerable: false,
+
+                value: function _overwritingData(text, reviver) { parse.call(this, text, reviver); }
+            },
+
+            stringifyChanges: {
+                writable: true, configurable: false, enumerable: false,
+
+                value: function _stringifyChanges(replacer, space, modifiedData = true, setUnmodified = true) {
+
+                    return stringify(this, replacer, space, { modifiedData, setUnmodified });
                 }
-                return this.replace(/[\s\uFEFF\xA0]+$/g, '');
+            },
+
+            // EventEmitter
+            _events: { value: {}, writable: true, configurable: false, enumerable: false },
+
+            once: {
+                writable: false, configurable: false, enumerable: false,
+                /**
+                * @param {string} eventName
+                * @param {(...params:any)=>void} listener
+                * @returns {DataContext}
+                */
+                value: function once(eventName, listener) {
+
+                    return this.on(eventName, listener, false);
+                }
+            },
+
+            on: {
+                writable: false, configurable: false, enumerable: false,
+
+                /**
+                * @param {string} eventName
+                * @param {(...params:any)=>void} listener
+                * @param {boolean|()=>boolean|Node} isActive if false then adds a one-time listener function for the event named eventName. The next time eventName is triggered, this listener is removed and then invoked.
+                * @returns {DataContext}
+                */
+                value: function on(eventName, listener, isActive = true) {
+
+                    if (!this._events[eventName]) { this._events[eventName] = []; }
+
+                    this._events[eventName].push(listener);
+                    isActive && (listener.isActive = isActive);
+
+                    return this;
+                }
+            },
+
+            emitToParent: {
+                writable: false, configurable: false, enumerable: false,
+
+                /**
+                 * @param {string} eventName
+                 * @param {...any} params
+                 * @returns {boolean} Returns true if the event had listeners, false otherwise.
+                 */
+                value: function emit(eventName, ...params) {
+
+                    var ret = this.emit(eventName, ...params);
+
+                    if (parent && typeof parent.emitToParent === "function") {
+
+                        //_modified
+                        if (params[0] && params[0].propertyPath) {
+
+                            params[0].propertyPath.unshift(propertyName);
+                        }
+
+                        ret = parent.emitToParent(eventName, ...params) || ret;
+                    }
+
+                    return ret;
+                }
+            },
+
+            emit: {
+                writable: false, configurable: false, enumerable: false,
+
+                value: function emit(eventName, ...params) {
+
+                    var ret = false;
+                    var arr = this._events[eventName] || [];
+                    var index = 0;
+
+                    while (index < arr.length) {
+
+                        var listener = arr[index];
+
+                        if (arr[index] === listener &&
+                            (typeof listener.isActive === "function" && !listener.isActive()
+                                || listener.isActive?.isConnected === false
+                                || listener.isActive === undefined
+                                || !listener.isActive === true)) {
+
+                            arr.splice(index, 1);
+                        }
+
+                        if (typeof listener.isActive === "function" && listener.isActive()
+                            || listener.isActive?.isConnected === true
+                            || listener.isActive === undefined
+                            || listener.isActive === true) {
+
+                            ret = true;
+                            if (!listener.call(this.Node && listener.isActive instanceof this.Node && listener.isActive, ...params)) {
+
+                                arr.splice(index, 1);
+                            }
+                        }
+
+                        if (arr[index] === listener) { index++; }
+                    }
+
+                    if (this._events[eventName] && !this._events[eventName].length) {
+
+                        delete this._events[eventName];
+                    }
+
+                    return ret;
+                }
             }
         });
-        String.prototype.includes || Object.defineProperty(String.prototype, 'includes', {
-            value: function (search) {
-                return this.indexOf(search) > -1;
+
+        proxy = new Proxy(value, handler);
+
+        Object.keys(value).forEach(function (key) {
+
+            if (value[key] && !value[key]._isDataContext) {
+
+                value[key] = createDataContext(value[key]);
+            }
+
+            if (value[key] && value[key]._isDataContext) {
+
+                value[key]._propertyName = key;
+                value[key]._parent = proxy;
             }
         });
-        /** Math */
-        Math.cbrt || Object.defineProperty(Math, 'cbrt', {
-            value: function cbrt(x) {
-                // ensure negative numbers remain negative:
-                return x < 0 ? -Math.pow(-x, 1 / 3) : Math.pow(x, 1 / 3);
+
+        return proxy;
+
+        function _isMyParent() { return !parent || parent && parent[propertyName] === proxy; }
+    }
+
+    /**
+     * Stringify type.
+     * @param {any} v Value.
+     * @returns {string} Returns the type of the value.
+     */
+    function _typeof(v) { return v === null ? "null" : Array.isArray(v) ? "array" : typeof v; }
+
+    /**
+     * Is global object in the browser and Node.js.
+     * @param {any} g Check object.
+     * @returns {boolean} Returns true if the object is global.
+     */
+    function isGlobal(g) { return g === (typeof globalThis !== 'undefined' ? globalThis : global || self); }
+
+    //#region *** Handler ***
+
+    var handler = { deleteProperty, set };
+
+    function deleteProperty(target, property) {
+
+        if (target.propertyIsEnumerable(property)) {
+
+            var oldValue = target[property],
+                newValue = undefined;
+
+            var ret = Reflect.deleteProperty(target, property);
+
+            if (oldValue === undefined) {
+
+                //console.log("? del: oldValue is undefined", property, { target, propertyPath: [property], oldValue, newValue });
+                target.emitToParent("-", { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+                target.emitToParent(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
             }
-        });
+            //else if (oldValue._parent === null) {
+
+            //    //console.log("'-delete' del: oldValue._parent is null", property, { target, propertyPath: [property], oldValue, newValue });
+            //    target.emitToParent("-delete", { target, propertyPath: [property], oldValue, newValue });
+            //    target.emitToParent(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+            //}
+            else {
+
+                //console.log("'-delete' del: oldValue is ", property, event);
+                target.emitToParent("-", { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+                target.emitToParent(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+            }
+
+            if (Array.isArray(target)) {
+
+                target._isModified = true;
+            }
+            else if (!target._modified.includes(property)) {
+
+                target._modified.push(property);
+            }
+
+            setModified(target._parent, target._propertyName);
+
+            if (Array.isArray(target)) {
+
+                var index = target._modified.indexOf(property);
+
+                if (index > -1) {
+                    target._modified.splice(index, 1);
+                }
+            }
+
+            target.emitToParent(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+
+            clearTimeout(target.emitToParent.timeout);
+            target.emitToParent.timeout = setTimeout(function () {
+
+                delete target.emitToParent.timeout;
+                target.emitToParent("-change", { eventName: "change", target, propertyPath: [property], oldValue, newValue });
+            });
+
+            return ret;
+        }
+
+        return Reflect.deleteProperty(target, property);
+    }
+
+    function set(target, property, newValue, proxy) {
+
+        if (target.propertyIsEnumerable(property)
+            || target[property] === undefined) {
+
+            var oldValue = target[property],
+                newValue = newValue && newValue._isDataContext ? newValue : createDataContext(newValue, property);
+
+
+            if (oldValue !== newValue) {
+
+                var eventName = "";
+                var _modifiedLength = target?._modified.length;
+
+                var ret = Reflect.set(target, property, newValue, proxy);
+
+                var isDC = newValue && newValue._isDataContext;
+                var isNew = isDC && newValue._parent !== proxy && oldValue === undefined;
+                isDC && (newValue._isModified = true);
+                isDC && (newValue._parent = proxy);
+
+                if (isDC && newValue._propertyName !== property) {
+
+                    //console.log("'-reposition' set: newValue propertyName is change ", newValue + "", ">", property, event);
+                    eventName = "reposition";
+                    newValue._propertyName = property;
+                    target.emitToParent("-", { eventName, target, propertyPath: [property], oldValue, newValue });
+                }
+                else if (isDC && isNew) {
+
+                    //console.log("'-new' set: oldValue is undefined", property, event);
+                    eventName = "new";
+                    target.emitToParent("-", { eventName, target, propertyPath: [property], oldValue, newValue });
+                }
+                else {
+
+                    //console.log("'-set' set: newValue parent is change", property, event);
+                    eventName = "set";
+                    target.emitToParent("-", { eventName, target, propertyPath: [property], oldValue, newValue });
+                }
+
+                setModified(target, property);
+
+                target.emitToParent(property, { eventName, target, propertyPath: [property], oldValue, newValue });
+
+                clearTimeout(target.emitToParent.timeout);
+                target.emitToParent.timeout = setTimeout(function () {
+
+                    delete target.emitToParent.timeout;
+
+                    if (target?._isModified || target?._modified.length !== _modifiedLength) {
+
+                        target.emitToParent("-change", { eventName: "change", target, propertyPath: [property], oldValue, newValue });
+                    }
+                });
+
+                return ret;
+            }
+        }
+
+        return Reflect.set(target, property, newValue, proxy);
+    }
+
+    function setModified(target, property) {
+
+        if (target?._isDataContext) {
+
+            if (!target._modified.includes(property)) {
+
+                target._modified.push(property);
+            }
+
+            setModified(target._parent, target._propertyName);
+        }
     }
 
     //#endregion
 
-    //#region Item
-
-    DC.Item = (function () {
-        /**
-         * Creates a new Item.
-         * @param {any} obj Optional. Init. data.
-         * @param {boolean} setIsModified
-        * @returns {Item} .
-         */
-        function Item(obj, setIsModified) {
-
-            var item = {};
-            item["-type"] = "DC.Item";
-            var _bindId = 0;
-            var _binds = {};
-            Object.defineProperty(item, "-binds", { get: function () { return _binds; } });
-            var values = {};
-            Object.defineProperty(item, "-values", { get: function () { return values; } });
-            Object.defineProperty(item, "isItem", { get: function () { return true; } });
-
-
-            var parent = null;
-            Object.defineProperty(item, "parent", { get: function () { return parent; }, set: function (value) { parent = value; } });
-            var parentPropertyName = null;
-            Object.defineProperty(item, "parentPropertyName", { get: function () { return parentPropertyName; }, set: function (value) { parentPropertyName = value; } });
-            var propertyNames = [];
-            /** Defined properties in 'Item' */
-            Object.defineProperty(item, "propertyNames", { get: function () { return propertyNames; } });
-            Object.defineProperty(item, "isEmpty", { get: function () { return !item.propertyNames.length; } });
-            Object.defineProperty(item, "isModified", { value: true, writable: true, configurable: true });
-            Object.defineProperty(item, "isOverwriting", { value: false, writable: true, configurable: true });
-
-            /**
-             * Invoke bind property update. 
-             * @param {string} propertyName Optional. If it is undefined, then invoke all properties.
-             * @param {any} newValue Optional.
-             * @param {any} oldValue Optional.
-             * @param {ArrayOfString} propertyPath Optional.
-             * @param {Object} binds Optional.
-             * @returns {Number} Returns invoke count.
-             */
-            item.bindInvoke = function (propertyName, newValue, oldValue, propertyPath, binds) {
-
-                var count = 0;
-                var source = binds ? binds : _binds;
-                source = propertyName ? source[propertyName] : source;
-
-                if (source)
-                    for (var key in source) {
-
-                        if (typeof source[key] === "function") {
-
-                            if (source[key] && (!source[key].element
-                                || source[key].element && source[key].element.isConnected !== undefined && source[key].element.isConnected
-                                || source[key].element && (source[key].element.parentElement || source[key].element.parentNode))) {
-
-                                source[key]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-
-                                count++;
-                            }
-                            else {
-                                if (source[key].element && typeof source[key].element.removeBinding === "function") {
-                                    source[key].element.removeBinding();
-                                }
-                                delete source[key];
-                            }
-                        }
-                        else {
-
-                            var c = item.bindInvoke(propertyName, newValue, oldValue, propertyPath, source[key]);
-
-                            if (c === 0)
-                                delete source[key];
-                            else
-                                count += c;
-                        }
-                    }
-
-
-                if (propertyName && _binds && _binds[""])
-                    for (var k in _binds[""])
-                        if (typeof _binds[""][k] === "function")
-                            _binds[""][k]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-
-                if (propertyName && _binds && _binds["."])
-                    for (var l in _binds["."])
-                        if (typeof _binds["."][l] === "function") {
-
-                            if (propertyPath && (propertyPath[0] === "value"
-                                || newValue && (newValue.action === "add" || newValue.action === "remove" || newValue.action === "modified"))
-                                && (newValue !== oldValue || newValue && oldValue && newValue.toString() !== oldValue.toString())) {
-
-                                _binds["."][l]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-                            }
-                        }
-
-                if (propertyName && item.parent && typeof item.parent.bindInvoke === "function") {
-                    if (!propertyPath) propertyPath = Array();
-                    propertyPath.push(item.parentPropertyName);
-                    item.parent.bindInvoke("parent", newValue, oldValue, propertyPath);
-                }
-
-                return count;
-            };
-            /**
-             * Add bind function in property.
-             * @param {string} propertyName Property name.
-             * @param {function} callback Callback function 'function(val, element[, parentPropertyValue]){...'.
-             * @param {HTMLElement} element Optional. Parameter 'element' is html element. If element.parentElement is undefined or null, auto delete callback function.
-             * @returns {function} Returns remove bind function.
-             */
-            item.addBind = function (propertyName, callback, element) {
-
-                if (typeof propertyName === "string" && typeof callback === "function") {
-
-                    if (propertyName && propertyName !== "." && !item[propertyName])
-                        item.defineProperty(propertyName, null);
-
-                    if (!element)
-                        element = { parentElement: {} };
-
-                    var binding = function (parentPropertyValue) { if (item[propertyName] || parentPropertyValue) callback(item[propertyName], element, parentPropertyValue); };
-                    var bindingId = _bindId++;
-
-                    if (!_binds[propertyName])
-                        _binds[propertyName] = {};
-                    else
-                        Object.keys(_binds[propertyName]).forEach(function (key) {
-
-                            if (_binds[propertyName][key] && !_binds[propertyName][key].element
-                                || _binds[propertyName][key] && _binds[propertyName][key].element && _binds[propertyName][key].element.isConnected !== undefined && !_binds[propertyName][key].element.isConnected
-                                || _binds[propertyName][key] && _binds[propertyName][key].element && !(_binds[propertyName][key].element.parentElement || _binds[propertyName][key].element.parentNode)
-                            ) {
-                                //debugger;
-                                if (_binds[propertyName][key] && _binds[propertyName][key].element
-                                    && typeof _binds[propertyName][key].element.removeBinding === "function") {
-                                    _binds[propertyName][key].element.removeBinding();
-                                }
-                                delete _binds[propertyName][key];
-                            }
-                        });
-
-                    _binds[propertyName][bindingId] = binding;
-                    _binds[propertyName][bindingId].element = element;
-
-                    var removeBinding = function () { delete _binds[propertyName][bindingId]; };
-                    element.removeBinding = removeBinding;
-                    binding();
-
-                    var count = Object.keys(_binds[propertyName]).length;
-                    if (count > 500) {
-                        if (typeof DC.GetPathByItem === "function") {
-                            console.warn("binds count: > 500 => datacontext" + DC.GetPathByItem(item[propertyName]) + "=" + item[propertyName]);
-                        } else {
-                            console.warn("binds count: > 500 => " + propertyName + "=" + item[propertyName]);
-                        }
-                    }
-
-                    return removeBinding;
-                }
-            };
-
-            /**
-             * Define property.
-             * @param {string} propertyName Property name.
-             * @param {Object} val Optional. Property value.
-             * @param {function(val)} setterFn Optional. function (val) { ... return val; }
-             * @param {function(val)} getterFn Optional. function (val) { ... return val; }
-             * @returns {Object} Returns value.
-             */
-            item.defineProperty = function (propertyName, val, setterFn, getterFn) {
-
-                if (val && val.hasOwnProperty("value")) { val = val.value; }
-
-                if (propertyName && propertyName !== "parent") {
-
-                    if (propertyNames.indexOf(propertyName) > -1)
-                        item.deleteProperty(propertyName);
-                    if (item[propertyName])
-                        delete item[propertyName];
-
-                    propertyNames.push(propertyName);
-                    Object.defineProperty(item, propertyName, {
-                        configurable: true,
-                        get: function () {
-
-                            if (typeof getterFn === "function")
-                                return getterFn(values[propertyName]);
-                            else
-                                return values[propertyName];
-                        },
-                        set: function (value) {
-
-                            var oldValue = IsItem(values[propertyName])
-                                && (propertyName === "value" || values[propertyName].propertyNames.length === 0)
-                                ? values[propertyName].value
-                                : values[propertyName];
-
-                            if (typeof setterFn === "function" && propertyName === "value") {
-
-                                value = setterFn(value);
-                            }
-
-                            if (value !== oldValue
-                                && ((!value || !value.value) && (!oldValue || !oldValue.value)
-                                    || (value && value.value || oldValue && oldValue.value)
-                                    && value + "" !== oldValue + "")) {
-
-                                if (IsItem(values[propertyName]) && !IsItem(value) && !IsCollection(value)) {
-                                    values[propertyName].init(value);
-                                }
-
-                                else if (propertyName !== "value" && !values.hasOwnProperty(propertyName)
-                                    && !IsItem(value) && !IsCollection(value)) {
-
-                                    if (typeof value === "object") {
-
-                                        if (typeof setterFn === "function")
-                                            value = setterFn(value);
-
-                                        values[propertyName] = Array.isArray(value) ? DC.Collection() : DC.Item();
-
-                                        if (item.isOverwriting) values[propertyName].overwrite(value);
-                                        else values[propertyName].init(value);
-                                    }
-                                    else {
-                                        var val = DC.Item();
-                                        val.defineProperty("value", value, setterFn);
-                                        value = val;
-                                        values[propertyName] = value;
-                                    }
-                                }
-                                else if (propertyName !== "value" && !IsItem(value) && !IsCollection(value)) {
-                                    values[propertyName] = DC.Item();
-                                    values[propertyName].defineProperty("value", oldValue, setterFn);
-                                    setTimeout(function () {
-                                        values[propertyName].value = value;
-                                    });
-                                }
-                                else {
-                                    values[propertyName] = value;
-                                }
-
-                                if (values[propertyName] && values[propertyName].hasOwnProperty("parent")) { values[propertyName].parent = item; }
-                                if (values[propertyName] && values[propertyName].hasOwnProperty("parentPropertyName")) { values[propertyName].parentPropertyName = propertyName; }
-
-                                if (item[propertyName] && item[propertyName].hasOwnProperty("isModified"))
-                                    item[propertyName].isModified = true;
-                                else if (propertyName === "value")
-                                    item.isModified = true;
-
-                                if (propertyName === "value" && item.parent && item.parentPropertyName) {
-                                    setTimeout(function () { item.parent.bindInvoke(item.parentPropertyName, values[propertyName], oldValue, Array(propertyName, item.parentPropertyName)); }, 50);
-                                }
-                            }
-                        }
-                    });
-
-
-                    if (val !== undefined) {
-                        item[propertyName] = val;
-                    }
-
-                    if (item[propertyName] && item[propertyName].hasOwnProperty("parent")) { item[propertyName].parent = item; }
-                    if (item[propertyName] && item[propertyName].hasOwnProperty("parentPropertyName")) { item[propertyName].parentPropertyName = propertyName; }
-
-                    return item[propertyName];
-                }
-            };
-            /**
-             * Set value in property.
-             * @param {string} propertyName Property name.
-             * @param {object} val Property value.
-             * @param {boolean} isAutoProperty Property auto gen.
-             * @returns {object} Returns value.
-             */
-            item.setValue = function (propertyName, val, isAutoProperty) {
-
-                if (propertyName) {
-
-                    if ((isAutoProperty || DC.IsAutoProperty || propertyName === "value")
-                        && propertyNames.indexOf(propertyName) < 0 && item[propertyName] === undefined) {
-                        val = item.defineProperty(propertyName, val);
-                        if (!isNode && !isAutoProperty && propertyName !== "value")
-                            console.info("AutoProperty!", "propertyName:'" + propertyName + "'", "value:'" + val + "'");
-                    }
-                    else if (item[propertyName] && typeof item[propertyName].init === "function")
-                        item[propertyName].init(val);
-
-                    else if (propertyName === "value" && val === null) {
-                        item.defineProperty("value", val);
-                    }
-
-                    else {
-                        item[propertyName] = val;
-                    }
-                }
-
-                return item[propertyName];
-            };
-            /**
-             * Delete property.
-             * @param {string} propertyName Property name.
-             */
-            item.deleteProperty = function (propertyName) {
-
-                if (values[propertyName] && values[propertyName].parent === item) { values[propertyName].parent = null; }
-                delete values[propertyName];
-                delete item[propertyName];
-                if (propertyNames.indexOf(propertyName) > -1)
-                    propertyNames.splice(propertyNames.indexOf(propertyName), 1);
-            };
-
-            item.clear = function () {
-
-                var newObj = DC.CreateByType(item["-type"]);
-                while (item.propertyNames.length)
-                    item.deleteProperty(item.propertyNames[0]);
-                item.isModified = true;
-                if (newObj && newObj.propertyNames && newObj.propertyNames.length) { item.init(newObj); }
-                item.bindInvoke(undefined, item);
-            };
-            /**
-             * Load Item data.item["-type"]
-             * @param {object} obj Data object.
-             * @param {boolean} setIsModified .
-             */
-            item.overwrite = function (obj, setIsModified) {
-
-                var overwriting = item.isOverwriting;
-                item.isOverwriting = true;
-                item.init(obj, setIsModified);
-                if (setIsModified) item.isModified = true;
-                else if (typeof setIsModified === "boolean") item.isModified = false;
-                item.isOverwriting = overwriting;
-            };
-            item.init = function (obj, setIsModified) {
-
-                if (Array.isArray(obj) || IsCollection(obj)) {
-
-                    item.setValue("value", DC.Collection(), true);
-                    item.isOverwriting ? item.value.overwrite(obj, setIsModified) : item.value.init(obj, setIsModified);
-                }
-                else if (typeof obj === "object" && obj !== null) {
-
-                    if (obj["-isEmpty"]) {
-                        item.clear();
-                        if (setIsModified) item.isModified = true;
-                        else if (typeof setIsModified === "boolean") item.isModified = false;
-                        return;
-                    }
-
-                    var keys = IsItem(obj) ? obj.propertyNames : Object.keys(obj);
-                    //var names = keys.slice(0);
-                    var names = keys.filter(function (key) { return key[0] !== "-" });
-
-                    if (!DC.IsAutoProperty/* && !item.isOverwriting*/)
-                        if (keys.length > 1 && keys.indexOf("value") > -1) // illogical 'value'
-                            keys = keys.filter(function (k) { return k !== "value"; });
-
-                    keys.forEach(function (key) {
-
-                        names = names.filter(function (name) { return name !== key; });
-
-                        if (key[0] === "-") {
-                            if (key !== '-type' || item['-type'] === "DC.Item")
-                                item[key] = obj[key];
-                        }
-
-                        else if (typeof obj[key] === "string" && obj[key].trim() === "-deleted") {
-                            item.deleteProperty(key);
-                            item.isModified = true;
-                            if (typeof setIsModified === "boolean") item.isModified = false;
-                            return;
-                        }
-
-                        else if (IsItem(item[key]) || IsCollection(item[key])) {
-                            item.isOverwriting ? item[key].overwrite(obj[key], setIsModified) : item[key].init(obj[key], setIsModified);
-                            if (setIsModified) item[key].isModified = true;
-                            else if (typeof setIsModified === "boolean") item[key].isModified = false;
-                        }
-
-                        else {
-                            var value = obj[key];
-                            if (Array.isArray(obj[key]) || IsCollection(obj[key])) {
-                                value = DC.CreateByType(obj[key]["-type"], obj[key])
-                                if (!value) value = DC.Collection();
-                                item.isOverwriting ? value.overwrite(obj[key], setIsModified) : value.init(obj[key], setIsModified);
-                            }
-                            else if (typeof obj[key] === "object" && obj[key] !== null) {
-                                value = DC.CreateByType(obj[key]["-type"], obj[key])
-                                if (!value) value = DC.Item();
-                                item.isOverwriting ? value.overwrite(obj[key], setIsModified) : value.init(obj[key], setIsModified);
-                            }
-                            item.setValue(key, value, true);
-                            if (item[key] && item[key].hasOwnProperty("isModified"))
-                                if (setIsModified) item[key].isModified = true;
-                                else if (typeof setIsModified === "boolean") item[key].isModified = false;
-                        }
-                    });
-
-                    if (!DC.IsAutoProperty && !item.isOverwriting)
-                        names.forEach(function (name) { item.deleteProperty(name); });
-
-                    if (setIsModified) item.isModified = true;
-                    else if (typeof setIsModified === "boolean") item.isModified = false;
-                }
-                else if (obj === undefined) {
-
-                    if (item["value"]) {
-                        item.clear();
-                        if (setIsModified) item.isModified = true;
-                        else if (typeof setIsModified === "boolean") item.isModified = false;
-                    }
-                }
-                else {
-
-                    if (!DC.IsAutoProperty && !item.isOverwriting) {
-                        var arr = item.propertyNames.slice(0);
-                        arr.forEach(function (key) {
-                            if (key !== "value")
-                                item.deleteProperty(key);
-                        });
-                    }
-
-                    if (typeof obj === "string" && obj.trim() === "-deleted") {
-                        if (item.parent) {
-                            item.parent.isModified = true;
-                            if (typeof setIsModified === "boolean") item.parent.isModified = false;
-                            item.parent.deleteProperty(item.parentPropertyName);
-                        }
-                        return;
-                    }
-
-                    item.setValue("value", obj, true);
-
-                    if (setIsModified) item.isModified = true;
-                    else if (typeof setIsModified === "boolean") item.isModified = false;
-                }
-            };
-            /**
-             * Get json string.
-             * @param {function} predict 'predict' is selected function - Boolean function(key, value){...
-             * @returns {string} Returns JSON string.
-             */
-            item.toJSON = function (predict) {
-
-                function pushPair(key, predict) {
-
-                    if (item[key] === undefined) return;
-
-                    var json = getJSON(item[key], predict);
-
-                    if (json) {
-                        sArr.push("\"");
-                        sArr.push(key);
-                        sArr.push("\"");
-                        sArr.push(":");
-
-                        sArr.push(json);
-
-                        sArr.push(",");
-                    }
-                }
-                function getJSON(val, predict) {
-
-                    if (IsCollection(val) || IsItem(val))
-                        return val.toJSON(predict);
-
-                    else if (val === undefined)
-                        return "null";
-
-                    else
-                        return JSON.stringify(val);
-                }
-
-                predict = typeof predict === "function" ? predict : function () { return true; };
-
-                var json = "";
-
-                if (propertyNames.length === 1 && propertyNames[0] === "value" && !IsCollection(item.parent))
-                    json = getJSON(item["value"], predict);
-                else {
-
-                    var sArr = ["{"];
-
-                    if (typeof item["-type"] === "string") {
-
-                        sArr.push("\"-type\":\"");
-                        sArr.push(item["-type"]);
-                        sArr.push("\"");
-                        sArr.push(",");
-                    }
-
-                    if (IsCollection(item.parent)) {
-
-                        sArr.push("\"-id\":\"");
-                        sArr.push(item.parentPropertyName);
-                        sArr.push("\"");
-                        sArr.push(",");
-                    }
-
-                    if (item.isEmpty) {
-
-                        sArr.push("\"-isEmpty\":\"");
-                        sArr.push("true");
-                        sArr.push("\"");
-                        sArr.push(",");
-                    }
-
-
-                    propertyNames.forEach(function (key) { pushPair(key, predict); });
-
-                    if (sArr[sArr.length - 1] === ",") { sArr.pop(); }
-
-                    sArr.push("}");
-
-                    json = sArr.join("");
-                }
-
-                var thisObj = {
-                    key: item.parentPropertyName,
-                    value: item,
-                    json: json,
-                    predict: predict
-                };
-
-                if (predict.call(thisObj, thisObj.key, thisObj.value)) {
-                    return thisObj.json;
-                }
-
-                return "";
-            };
-            item.toPrettyJSON = function (predict) {
-                var json = item.toJSON(predict);
-                if (!json) return json;
-                return JSON.stringify(JSON.parse(json), null, 2);
-            };
-            /**
-             * Returns property names.
-             * @returns {string} .
-             */
-            item.toString = function () {
-
-                if (item.propertyNames.length === 1 && item.propertyNames[0] === "value")
-                    return item.value + "";
-
-                return DC.IsDebuger ? "typeOf " + item["-type"] + " properties[" + propertyNames + "]" : "";
-            };
-
-            item.toObject = function () { return JSON.parse(item.toJSON()); };
-
-            if (obj !== undefined) { item.init(obj, setIsModified); }
-
-            return item;
+    //#region *** parse / stringify ***
+
+    /**
+     * Parse a string to an object.
+     * @param {string|number} text Input value.  
+     * @param {any} reviver Reviver. 
+     * @returns {any} Returns an object.
+     */
+    function parse(text, reviver) {
+
+        if (text !== null
+            && typeof text !== "string"
+            && text && typeof text !== "number") {
+
+            return;
         }
 
-        return Item;
-    })();
+        var it = new _it(text);
+        var _this = isGlobal(this) ? undefined : this;
+        var isOverwriting = Boolean(_this);
 
-    var IsItem = function (obj) { return obj && obj.isItem ? true : false; };
-    DC.IsItem = IsItem;
+        if (typeof reviver === "object") {
 
-    //#endregion
-
-    //#region Collection
-
-    DC.Collection = (function () {
-        /**
-         * Creates a new Collection.
-         * @param {any[]} obj Optional. Init. data.
-         * @param {string} itemType Optional. Item type.
-         * @param {boolean} setIsModified Optional.
-         * @returns {Collection} .
-         */
-        function Collection(obj, itemType, setIsModified) {
-
-            var collection = {};
-            collection["-type"] = "DC.Collection";
-            var _bindId = 0;
-            var _binds = {};
-            Object.defineProperty(collection, "-binds", { get: function () { return _binds; } });
-            var idCount = 0;
-            var values = {};
-            Object.defineProperty(collection, "-values", { get: function () { return values; } });
-            collection.itemType = itemType;
-            Object.defineProperty(collection, "isCollection", { get: function () { return true; } });
-
-            var propertyNames = [];
-            /** Defined properties in 'collection' */
-            Object.defineProperty(collection, "propertyNames", { get: function () { return propertyNames; } });
-            Object.defineProperty(collection, "length", { get: function () { return propertyNames.length; } });
-
-            var parent = null;
-            /** Parent object */
-            Object.defineProperty(collection, "parent", { get: function () { return parent; }, set: function (value) { parent = value; } });
-            var parentPropertyName = null;
-            Object.defineProperty(collection, "parentPropertyName", { get: function () { return parentPropertyName; }, set: function (value) { parentPropertyName = value; } });
-
-            var removedIDs = [];
-            Object.defineProperty(collection, "removedIDs", { get: function () { return removedIDs; } });
-            Object.defineProperty(collection, "isEmpty", { get: function () { return !collection.length && !collection.removedIDs.length; } });
-            var isModified = true;
-            Object.defineProperty(collection, "isModified", {
-                get: function () {
-                    if (isModified)
-                        return isModified;
-                    return collection.filter(function (item) { return item.isModified; }).length > 0;
-                },
-                set: function (val) { isModified = val; },
-                configurable: true
-            });
-            Object.defineProperty(collection, "isOverwriting", { value: false, writable: true, configurable: true });
-            Object.defineProperty(collection, "firstItem", { get: function () { return values[propertyNames[0]]; } });
-            Object.defineProperty(collection, "lastItem", { get: function () { return values[propertyNames[propertyNames.length - 1]]; } });
-
-
-            function push(obj, id) {
-
-                if (idCount < id) { idCount = id; }
-                var propertyName = "id_" + idCount++;
-                if (obj && obj.hasOwnProperty("parent")) { obj.parent = collection; }
-                if (obj && obj.hasOwnProperty("parentPropertyName")) { obj.parentPropertyName = propertyName; }
-
-                obj["-id"] = propertyName;
-                values[propertyName] = obj;
-                propertyNames.push(propertyName);
-
-                Object.defineProperty(collection, propertyName, {
-                    configurable: true,
-                    get: function () { return values[propertyName]; },
-                    set: function (value) {
-                        if (value !== values[propertyName]) {
-                            var oldValue = values[propertyName];
-
-                            if (values[propertyName] && typeof values[propertyName].setValue === "function"
-                                && !IsItem(value) && !IsCollection(value))
-                                values[propertyName] = DC.Item(value);
-                            else
-                                values[propertyName] = value;
-
-                            if (values[propertyName] && values[propertyName].hasOwnProperty("parent")) { values[propertyName].parent = collection; }
-                            if (values[propertyName] && values[propertyName].hasOwnProperty("parentPropertyName")) { values[propertyName].parentPropertyName = propertyName; }
-
-
-                            if (!collection.isOverwriting) {
-                                collection.bindInvoke(propertyName, values[propertyName], oldValue, Array(propertyName));
-                            }
-                        }
-                    }
-                });
-
-                var index = propertyNames.length - 1;
-                Object.defineProperty(collection, index, {
-                    configurable: true,
-                    get: function () {
-                        return propertyNames[index] && values[propertyNames[index]]
-                            ? values[propertyNames[index]]
-                            : undefined;
-                    },
-                    set: function (value) {
-
-                        if (propertyNames[index] && value !== values[propertyNames[index]]) {
-
-                            var oldValue = values[propertyNames[index]];
-
-                            if (values[propertyNames[index]] && typeof values[propertyNames[index]].setValue === "function"
-                                && !IsItem(value) && !IsCollection(value)) {
-                                values[propertyNames[index]] = DC.Item(value);
-                            }
-                            else {
-                                values[propertyNames[index]] = value;
-                                values[propertyNames[index]]["-id"] = propertyNames[index];
-                            }
-
-                            if (values[propertyNames[index]] && values[propertyNames[index]].hasOwnProperty("parent")) { values[propertyNames[index]].parent = collection; }
-                            if (values[propertyNames[index]] && values[propertyNames[index]].hasOwnProperty("parentPropertyName")) { values[propertyNames[index]].parentPropertyName = propertyNames[index]; }
-
-                            if (!collection.isOverwriting) { collection.bindInvoke(index, values[propertyNames[index]], oldValue, [index]); }
-                        }
-                    }
-                });
-
-                return propertyNames.length;
+            _this = reviver;
+            if (_this?._isDataContext) {
+                reviver = createDataContext;
             }
-            collection["-values"].push = push;
-            function splice(start, deleteCount) {
-                var result = [];
-                var removed = propertyNames.splice(start, deleteCount);
-                removed.forEach(function (propertyName) {
-                    removedIDs.push(propertyName);
-                    values[propertyName].parent = null;
-                    result.push(values[propertyName]);
-                    delete values[propertyName];
-                    delete collection[propertyName];
-                    if (collection.hasOwnProperty(propertyNames.length))
-                        delete collection[propertyNames.length];
-                });
-                return result;
-            }
-            collection["-values"].splice = splice;
+        }
 
-            /**
-             * Invoke bind Collection update.
-             * @param {Object} val Optional. 'val' is object { action: 'addBind|add|remove|modified', items: [], source: [] }
-             * @returns {Number} Returns invoke count.
-             */
-            collection.bindInvokeCollection = function (val) {
+        if (reviver === createDataContext) {
 
-                var count = 0;
-                for (var key in _binds) {
+            reviver = function _set(k, v) {
 
-                    if (key === "parent" || key === "values") continue;
+                if (v?._isDataContext) {
 
-                    if (!_binds[key].element || _binds[key].element && _binds[key].element.parentElement) {
-
-                        if (typeof _binds[key] === "function") {
-
-                            _binds[key](val);
-                            count++;
-                        }
-                    }
-                    else
-                        delete _binds[key];
+                    return v;
                 }
 
-                if (val && _binds && _binds[""])
-                    for (var k in _binds[""])
-                        if (typeof _binds[""][k] === "function")
-                            _binds[""][k]({ newValue: val, oldValue: null, propertyPath: Array(collection.parentPropertyName) });
-
-                if (val && _binds && _binds["."])
-                    for (var l in _binds["."])
-                        if (typeof _binds["."][l] === "function") {
-
-                            if (val && (val.action === "add" || val.action === "remove" || val.action === "modified")) {
-
-                                _binds["."][l]({ newValue: val, oldValue: null, propertyPath: Array(collection.parentPropertyName) });
-                            }
-                        }
-
-                if (val && collection.parent && typeof collection.parent.bindInvoke === "function") {
-                    collection.parent.bindInvoke("parent", val, null, Array(collection.parentPropertyName));
-                }
-
-                return count;
+                return createDataContext(v, k, this);
             };
-            /**
-             * Add bind function in collection.
-             * @param {function} callback function(val){... // 'val' is object { action: 'addBind|add|remove|modified', items: [], source: [] }.
-             * @param {HTMLElement} element Optional. 'element' is html element. If element.parentElement is undefined or null, auto delete callback function.
-             * @returns {function} Returns remove bind function.
-             */
-            collection.addBindCollection = function (callback, element) {
+        }
+
+        try {
+            var meta = _whitespace();
+            var value = _value(_this);
+        }
+        catch (e) {
+
+            throw "[ ERROR ] " + e
+            + " In parsing position: " + it.position + " '" + it.current + "' => "
+            + it.text.substring(it.position < 10 ? 0 : it.position - 10, it.position + 10)
+                .replace(/\r/g, "\\r")
+                .replace(/\n/g, "\\n");
+        }
+
+        _setMetadata(value, meta);
+
+        if (reviver && reviver.name === "_set") {
+
+            value = reviver.call(
+                undefined,
+                undefined,
+                value
+            );
+
+            return value;
+        }
+
+        if (reviver) {
+
+            value = reviver.call(
+                { "": value },
+                "",
+                value
+            );
+        }
+
+        return value;
+
+
+        function _it(text) {
+
+            var currentPosition = 0;
+            this.text = text + '';
+            this.position = 1;
+            this.current = this.text.charAt(0);
+            this.following = this.text.charAt(1);
+            this.is = _is;
+            this.next = _next;
+            this.isInfiniteLoop = _isInfiniteLoop;
+            this.setPosition = _setPosition;
+
+            function _isInfiniteLoop() {
+
+                if (currentPosition !== this.position) {
+
+                    currentPosition = this.position;
+
+                    return false;
+                }
+
+                throw "Incorrect entry.";
+            }
+
+            function _next() {
+
+                this.position++;
+                this.current = this.following;
+                this.following = this.text.charAt(this.position);
+            }
+
+            function _is(str) {
+
+                if (this.text.substring(this.position - 1, this.position - 1 + str.length) === str) {
+
+                    this.position = this.position + str.length;
+                    this.current = this.text.charAt(this.position - 1);
+                    this.following = this.text.charAt(this.position);
+
+                    return true;
+                }
+                return false;
+            }
+
+            function _setPosition(pos) {
+
+                this.position = pos;
+                this.current = this.text.charAt(pos - 1);
+                this.following = this.text.charAt(pos);
+            }
+        }
+
+        function _get(val, def) {
+
+            if (it.current === '\r' && it.following === '\r'
+                || _typeof(val) !== _typeof(def)) {
+
+                return def;
+            }
+
+            return val;
+        }
+
+        function _whitespace() {
+
+            var meta = [], metadata;
+            __whitespace();
+
+            while (metadata = _metadata()) {
+
+                if (metadata.trim()) { meta.push(metadata); }
+                __whitespace();
+            }
+
+            __whitespace();
+
+            return meta;
+
+
+            function __whitespace() {
+
+                while (it.current === '\n'
+                    || it.current === '\r'
+                    || it.current === '\t'
+                    || it.current === '\u0020') {
+
+                    it.next();
+                }
+            }
+        }
+
+        function _metadata() {
+
+            if (it.current === '/' && (it.following === '*' || it.following === '/')) {
+
+                var metadata = '',
+                    isMetadata = it.current === '/' && it.following === '*';
+
+                it.next();
+                it.next();
+
+                while (isMetadata && !(it.current === '*' && it.following === '/')
+                    || !isMetadata && !(it.current === '\r' || it.current === '\n')) {
+
+                    metadata += it.current;
+                    it.next();
+                }
+
+                if (it.current === '\r' || it.current === '\n') {
+
+                    return ' ';
+                }
+
+                it.next();
+                it.next();
+
+                return metadata;
+            }
+        }
+
+        function _setMetadata(obj, metadata, key = '') {
+
+            if (createDataContext.IgnoreMetadata) { return; }
+
+            if (metadata && metadata.length && obj && typeof obj === 'object') {
+
+                key = key + "";
+
+                Object.defineProperty(
+                    obj,
+                    '-metadata' + (key ? '-' + key : ''),
+                    {
+                        value: metadata,
+                        writable: true,
+                        configurable: true,
+                        enumerable: false
+                    }
+                );
+            }
+        }
+
+        function _value(val) {
+
+            var _val = _object(val);
+            if (_val !== undefined) { return _val; }
+
+            _val = _array(val);
+            if (_val !== undefined) { return _val; }
+
+            _val = _string();
+            if (_val !== undefined) { return _val; }
+
+            _val = _true();
+            if (_val !== undefined) { return _val; }
+
+            _val = _false();
+            if (_val !== undefined) { return _val; }
+
+            _val = _null();
+            if (_val !== undefined) { return _val; }
+
+            _val = _number(val);
+            return _val;
+        }
+
+        function _string() {
+
+            _whitespace();
+
+            if (it.current === '"') {
+
+                var str = '';
+                it.next();
+
+                if (!it.current) { return; }
+
+                while (it.current && it.current !== '"') {
+
+                    str += it.current;
+                    it.next();
+                }
+
+                if (it.current === '"') {
+
+                    it.next();
+                }
+
+                return str;
+            }
+        }
+
+        function _number() {
+
+            _whitespace();
+            var str = _negative();
+
+            if (it.current === "0") {
+
+                str += it.current;
+                it.next();
+            }
+            else {
+                str += _digit();
+            }
+
+            if (it.current === ".") {
+
+                str += it.current;
+                it.next();
+                str += _digit();
+            }
+
+            if (it.current && "eE".includes(it.current)) {
+
+                str += it.current;
+                it.next();
+
+                if (it.current && "-+".includes(it.current)) {
+
+                    str += it.current;
+                    it.next();
+                }
+
+                str += _digit();
+            }
+
+            if (!str) { return undefined; }
+
+            str = JSON.parse(str);
+
+            return str;
+        }
+
+        function _negative() {
+
+            if (it.current === '-') {
+
+                it.next();
+
+                return '-';
+            }
+
+            return '';
+        }
+
+        function _digit() {
+
+            var str = '';
+
+            while (it.current && "0123456789".includes(it.current)) {
+
+                str += it.current;
+                it.next();
+            }
+
+            return str;
+        }
+
+        function _object(val) {
+
+            var meta = _whitespace();
+
+            if (it.current === '{') {
+
+                it.next();
+
+                var obj = _get(val, {});
+
+                _setMetadata(obj, meta);
+
+                while (it.current !== '}' && !it.isInfiniteLoop()) {
+
+                    meta = _whitespace();
+
+                    var k = _key();
+
+                    _whitespace();
+
+                    var v = _value(obj[k]);
+
+                    _whitespace();
+
+                    if (it.current !== ',' && it.current !== '}') {
+
+                        throw "Incorrect object separator.";
+                    }
+
+                    if (it.current === ',') {
+
+                        it.next();
+                    }
+
+                    if (typeof k === 'string' && v !== undefined) {
+
+                        if (reviver) {
+
+                            Reflect.set(
+                                obj,
+                                k,
+                                reviver.call(obj, k, v)
+                            );
+                        }
+                        else {
+
+                            obj[k] = v;
+                        }
+
+                        if (typeof obj[k] === 'object') {
+
+                            _setMetadata(obj[k], meta);
+                        }
+                        else {
+
+                            _setMetadata(obj, meta, k);
+                        }
+                    }
+                }
+
+                if (it.current === '}') {
+
+                    it.next();
+                }
+
+                return obj;
+            }
+        }
+
+        function _key() {
+
+            _whitespace();
+
+            if (it.current === ":") {
+
+                throw "Invalid object key.";
+            }
+
+            var key = _string();
+
+            _whitespace();
+
+            if (typeof key !== "string" || it.current !== ":") {
+
+                throw "Invalid object key.";
+            }
+            else {
+
+                it.next();
+            }
+
+            return key;
+        }
+
+        function _array(val) {
+
+            var meta = _whitespace();
+
+            if (it.current === '[') {
+
+                it.next();
+
+                var arr = _get(val, []);
+
+                _setMetadata(arr, meta);
+
+                var i = 0;
+
+                while (it.current !== ']' && !it.isInfiniteLoop()) {
+
+                    meta = _whitespace();
+
+                    // for update
+                    var index = _index();
+
+                    if (isOverwriting && index === undefined) {
+
+                        throw "Overwriting data -> index must be.";
+                    }
+
+                    _whitespace();
+
+                    var v = _value(arr[typeof index === "number" && index || i]);
+
+                    _whitespace();
+
+                    if (it.current !== ',' && it.current !== ']') {
+
+                        throw "Incorrect array separator.";
+                    }
+
+                    if (it.current === ',') {
+
+                        it.next();
+                    }
+
+                    if (reviver) {
+
+                        v = reviver.call(arr, String(typeof index === "number" && index || i), v);
+                    }
+
+                    if (v === undefined && typeof index === "number" && index > -1) {
+
+                        arr.splice(index, 1);
+                    }
+                    else if (typeof index === "number" && arr[index] !== undefined) {
+
+                        arr[index] = v;
+                    }
+                    else {
+
+                        arr.push(v);
+                    }
+
+                    if (typeof arr[typeof index === "number" && index || i] === 'object') {
+
+                        _setMetadata(arr[typeof index === "number" && index || i], meta);
+                    }
+                    else {
+
+                        _setMetadata(arr, meta, typeof index === "number" && index || i);
+                    }
+
+                    i++;
+                }
+
+                if (it.current === ']') {
+
+                    it.next();
+                }
+
+                return arr;
+            }
+        }
+
+        function _index() {
+
+            _whitespace();
+
+            if (it.current === ":") {
+
+                throw "Invalid array index.";
+            }
+
+            var pos = it.position;
+            var nr = _number();
+
+            _whitespace();
+
+            if (typeof nr !== "number" && it.current === ":") {
+
+                throw "Invalid array index.";
+            }
+
+            if (typeof nr === "number" && it.current === ":") {
+
+                it.next();
+
+                return nr;
+            }
+
+            it.setPosition(pos);
+
+            return;
+        }
+
+        function _true() {
+
+            _whitespace();
+
+            if (it.is('true')) {
+
+                return true;
+            }
+        }
+
+        function _false() {
+
+            _whitespace();
+
+            if (it.is('false')) {
+
+                return false;
+            }
+        }
+
+        function _null() {
+
+            _whitespace();
+
+            if (it.is('null')) {
+
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Parse a string to an object, asynchronously.
+     * @param {any} textOrReadStream Input value.
+     * @param {any} reviver Reviver.
+     * @param {any} callback Callback. Optional.
+     * @returns {Promise} Returns a promise.
+     */
+    function parsePromise(textOrReadStream, reviver, callback = null) {
+
+        if (textOrReadStream !== null
+            && typeof textOrReadStream !== "string"
+            && textOrReadStream && typeof textOrReadStream !== "number"
+            && !_isStream(textOrReadStream)) {
+
+            return;
+        }
+
+        var it = new _it(textOrReadStream);
+        var _this = isGlobal(this) ? undefined : this;
+        var isOverwriting = Boolean(_this);
+
+        if (typeof reviver === "object") {
+
+            _this = reviver;
+
+            if (_this?._isDataContext) {
+
+                reviver = createDataContext;
+            }
+        }
+
+        if (reviver === createDataContext) {
+
+            reviver = function _set(k, v) {
+
+                if (v?._isDataContext) {
+
+                    return v;
+                }
+
+                return createDataContext(v, k, this);
+            };
+        }
+
+        return new Promise(function (resolve, reject) {
+
+            try {
+
+                it.next(function () {
+
+                    _whitespace(function (meta) {
+
+                        _value(_this, function (value) {
+
+                            _setMetadata(value, meta);
+
+                            if (reviver && reviver.name === "_set") {
+
+                                value = reviver.call(
+                                    undefined,
+                                    undefined,
+                                    value
+                                );
+                            }
+
+                            else if (reviver) {
+
+                                value = reviver.call(
+                                    { "": value },
+                                    "",
+                                    value
+                                );
+                            }
+
+                            resolve(value);
+
+                            if (typeof callback === "function") {
+
+                                callback(null, value);
+                            }
+                        });
+                    });
+                });
+            }
+            catch (e) {
+
+                var err = "[ ERROR ] " + e
+                    + " In parsing position: " + it.position + " '" + it.current + "' => "
+                    + it.text.substring(it.position < 10 ? 0 : it.position - 10, it.position + 10)
+                        .replace(/\r/g, "\\r")
+                        .replace(/\n/g, "\\n");
+
+                reject(err);
 
                 if (typeof callback === "function") {
 
-                    var bindingId = _bindId++;
-
-                    if (!element)
-                        element = { parentElement: {} };
-
-                    _binds[bindingId] = function (val) { callback(val, element); };
-                    _binds[bindingId].element = element;
-
-                    var removeBinding = function () { delete _binds[bindingId]; };
-                    element.removeBinding = removeBinding;
-
-                    _binds[bindingId]({
-                        action: "addBind",
-                        items: collection.toArray(true),
-                        parent: collection.parent,
-                        source: collection,
-                        toString: function () { return "action:'addBind', actionItems.length:" + collection.length + " source:" + collection.toString(); }
-                    });
-
-                    var count = Object.keys(_binds).length;
-                    if (count > 500) {
-                        if (typeof DC.GetPathByItem === "function") {
-                            console.warn("binds count: > 500 => datacontext" + DC.GetPathByItem(collection) + "=" + collection.toString());
-                        } else {
-                            console.warn("binds count: > 500 => " + collection.toString());
-                        }
-                    }
-
-                    return removeBinding;
+                    callback(err);
                 }
-            };
-
-            /**
-             * Invoke bind Collection Item update.
-             * @param {String} propertyName  property name .
-             * @param {any} newValue Optional.
-             * @param {any} oldValue Optional.
-             * @param {ArrayOfString} propertyPath Optional.
-             * @param {Object} binds Optional.
-             * @returns {Number} Returns invoke count.
-             */
-            collection.bindInvoke = function (propertyName, newValue, oldValue, propertyPath, binds) {
-
-                var count = 0;
-                var source = values[propertyName] ? values[propertyName].binds : null;
-                if (!source) {
-                    source = binds ? binds : (function () {
-
-                        var resut = [];
-                        collection.toArray(true).forEach(function (val) {
-
-                            if (val) {
-                                if (!propertyName && val.binds)
-                                    resut.push(val.binds);
-                                else if (val["-binds"] && val["-binds"][propertyName])
-                                    resut.push(val["-binds"][propertyName]);
-                            }
-                        });
-                        return resut;
-                    })();
-                }
-
-                if (source)
-                    for (var key in source) {
-
-                        if (typeof source[key] === "function") {
-
-                            if (!source[key].element || source[key].element && source[key].element.parentElement) {
-
-                                source[key]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-                                count++;
-                            }
-                            else
-                                delete source[key];
-                        }
-                        else if (source[key]) {
-
-                            var c = collection.bindInvoke(propertyName, newValue, oldValue, propertyPath, source[key]);
-
-                            if (c === 0)
-                                delete source[key];
-                            else
-                                count += c;
-                        }
-                        else
-                            delete source[key];
-                    }
-
-
-                if (_binds && _binds[""])
-                    for (var k in _binds[""])
-                        if (typeof _binds[""][k] === "function")
-                            _binds[""][k]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-
-                if (_binds && _binds["."])
-                    for (var l in _binds["."])
-                        if (typeof _binds["."][l] === "function") {
-
-                            if (propertyPath && (propertyPath[0] === "value"
-                                || newValue && (newValue.action === "add" || newValue.action === "remove" || newValue.action === "modified"))
-                                && (newValue !== oldValue || newValue.toString() !== oldValue.toString())) {
-
-                                _binds["."][l]({ newValue: newValue, oldValue: oldValue, propertyPath: propertyPath });
-                            }
-                        }
-
-                if (collection.parent && typeof collection.parent.bindInvoke === "function") {
-                    if (!propertyPath) propertyPath = Array();
-                    propertyPath.push(collection.parentPropertyName);
-                    collection.parent.bindInvoke("parent", newValue, oldValue, propertyPath);
-                }
-
-                return count;
-            };
-            /**
-             * Add bind item function in collection.
-             * @param {String} propertyName property name.
-             * @param {function} callback function(val, element, parentPropertyValue){...
-             * @param {HTMLElement} element Optional.'element' is html element.If element.parentElement is undefined or null, auto delete callback function.
-             * @returns {function} Returns remove bind function.
-             */
-            collection.addBind = function (propertyName, callback, element) {
-
-                if (typeof propertyName === "string" && typeof callback === "function") {
-
-                    if (!element)
-                        element = { parentElement: {} };
-
-                    var binding = function (parentPropertyValue) { callback(collection[propertyName], element, parentPropertyValue); };
-                    var bindingId = _bindId++;
-
-                    if (!_binds[propertyName])
-                        _binds[propertyName] = {};
-                    else
-                        Object.keys(_binds[propertyName]).forEach(function (key) {
-
-                            if (_binds[propertyName][key] && !_binds[propertyName][key].element
-                                || _binds[propertyName][key] && _binds[propertyName][key].element && _binds[propertyName][key].element.isConnected !== undefined && !_binds[propertyName][key].element.isConnected
-                                || _binds[propertyName][key] && _binds[propertyName][key].element && !(_binds[propertyName][key].element.parentElement || _binds[propertyName][key].element.parentNode)
-                            ) {
-                                //debugger;
-                                if (_binds[propertyName][key] && _binds[propertyName][key].element
-                                    && typeof _binds[propertyName][key].element.removeBinding === "function") {
-                                    _binds[propertyName][key].element.removeBinding();
-                                }
-                                delete _binds[propertyName][key];
-                            }
-                        });
-
-                    _binds[propertyName][bindingId] = binding;
-                    _binds[propertyName][bindingId].element = element;
-
-                    var removeBinding = function () { delete _binds[propertyName][bindingId]; };
-                    element.removeBinding = removeBinding;
-                    binding();
-
-                    var count = Object.keys(_binds[propertyName]).length;
-                    if (count > 500) {
-                        if (typeof DC.GetPathByItem === "function") {
-                            console.warn("binds count: > 500 => datacontext" + DC.GetPathByItem(collection[propertyName]) + "=" + collection[propertyName]);
-                        } else {
-                            console.warn("binds count: > 500 => " + propertyName + "=" + collection[propertyName]);
-                        }
-                    }
-
-                    return removeBinding;
-                }
-            };
-
-            function parseItem(obj, setIsModified) {
-
-                var item;
-
-                if ((IsItem(obj) || IsCollection(obj)) && !collection.itemType) {
-                    item = obj;
-                }
-                else if (typeof eval(collection.itemType) === "function") {
-
-                    item = eval(collection.itemType)();
-
-                    if (typeof item.overwrite === "function" && typeof item.init === "function")
-                        collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                    else
-                        item = eval(collection.itemType)(obj);
-
-                }
-                else if (!isNode && typeExist(obj["-type"])) {
-
-                    item = eval(obj["-type"])();
-
-                    if (typeof item.overwrite === "function" && typeof item.init === "function")
-                        collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                    else
-                        item = eval(obj["-type"])(obj);
-                }
-                else if (IsCollection(obj) || IsItem(obj)) {
-                    item = obj;
-                    collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                }
-                else if (typeof obj === "object" && obj !== null) {
-
-                    if (Array.isArray(obj)) {
-                        item = DC.Collection();
-                        collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                    }
-                    else {
-                        item = DC.Item();
-                        collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                    }
-                }
-                else {
-                    item = DC.Item();
-                    collection.isOverwriting ? item.overwrite(obj, setIsModified) : item.init(obj, setIsModified);
-                }
-
-                if (item.hasOwnProperty("isModified")) {
-                    if (setIsModified) item.isModified = true;
-                    else if (typeof setIsModified === "boolean") item.isModified = false;
-                }
-
-                return item;
             }
-            /**
-             * Add 'obj' in collection.
-             * @param {Object} obj .
-             * @param {boolean} setIsModified .
-             */
-            collection.add = function (obj, setIsModified) {
+        });
 
-                var id = obj && obj["-id"] ? parseInt((obj["-id"] + "").substr(3)) : 0;
-                var item = parseItem(obj, setIsModified);
-                push(item, id);
 
-                var actionItem = {
-                    action: "add",
-                    items: [item],
-                    parent: collection.parent,
-                    source: collection,
-                    toString: function () { return "action:'add', actionItems.length:1 source:" + collection.toString(); }
-                };
+        function _error(err) {
 
-                collection.bindInvokeCollection(actionItem);
-            };
-            /**
-             * Add 'array' values in collection.
-             * @param {Array} array .
-             */
-            collection.addRange = function (array, setIsModified) {
+            reject(err);
 
-                if (arguments.length > 1)
-                    array = Array.prototype.slice.call(arguments);
+            if (typeof callback === "function") {
 
-                if (Array.isArray(array) || IsCollection(array)) {
-
-                    var items = [];
-
-                    for (var i = 0; i < array.length; i++) {
-
-                        var id = obj && obj["-id"] ? parseInt(obj["-id"].substr(3)) : 0;
-                        var item = parseItem(array[i], setIsModified);
-                        items.push(item);
-                        push(item, id);
-                    }
-
-                    var actionItem = {
-                        action: "add",
-                        items: items,
-                        parent: collection.parent,
-                        source: collection,
-                        toString: function () { return "action:'add', actionItems.length:" + items.length + " source:" + collection.toString(); }
-                    };
-
-                    collection.bindInvokeCollection(actionItem);
-                }
-                else {
-                    collection.add(array);
-                }
-            };
-            /** Removes all elements from the Collection. */
-            collection.clear = function () {
-                if (collection.length) //setTimeout(function () { collection.removeAll(function () { return true; }); }, 1);
-                    collection.removeAll(function () { return true; });
-                removedIDs = [];
-                idCount = 0;
-            };
-            /**
-             * Remove item in collection.
-             * @param {function} predict 'predict' is function - Boolean function(item){... 
-             * @returns {Array} Returns removed item.
-             */
-            collection.remove = function (predict) {
-
-                if (predict)
-                    for (var i = 0; i < collection.length; i++) {
-
-                        if (collection[i] !== undefined && predict(collection[i])) {
-
-                            var removed = splice(i, 1);
-
-                            collection.isModified = true;
-
-                            var actionItem = {
-                                action: "remove",
-                                items: removed,
-                                parent: collection.parent,
-                                source: collection,
-                                toString: function () { return "action:'remove', actionItems.length:" + removed.length + " source:" + collection.toString(); }
-                            };
-
-                            collection.bindInvokeCollection(actionItem);
-
-                            return removed;
-                        }
-                    }
-            };
-            /**
-             * Remove items in collection.
-             * @param {function} predict 'predict' is function - Boolean function(item){...
-             * @returns {Array} Returns removed items.
-             */
-            collection.removeAll = function (predict) {
-
-                var removed = [];
-
-                if (predict) {
-
-                    for (var i = collection.length - 1; i > -1; i--) {
-
-                        if (predict(collection[i])) {
-
-                            removed = removed.concat(splice(i, 1));
-                        }
-                    }
-
-                    collection.isModified = true;
-
-                    var actionItem = {
-                        action: "remove",
-                        items: removed,
-                        parent: collection.parent,
-                        source: collection,
-                        toString: function () { return "action:'remove', actionItems.length:" + removed.length + " source:" + collection.toString(); }
-                    };
-
-                    collection.bindInvokeCollection(actionItem);
-                }
-
-                return removed;
-            };
-            /**
-             * Source item will remove and it will be placed just after destination
-             * @param {number} fromIndex Source item index.
-             * @param {number} toIndex Destination index.
-             * @param {boolean} notInvoke Invoke bind Collection update.
-             */
-            collection.moveItemTo = function (fromIndex, toIndex, notInvoke) {
-
-                if (fromIndex >= -1 && toIndex > -1) {
-
-                    var tempItem = collection[fromIndex];
-                    collection[fromIndex] = collection[toIndex];
-                    collection[toIndex] = tempItem;
-
-                    collection.isModified = true; // For test
-                    collection[fromIndex].isModified = true;
-                    collection[toIndex].isModified = true;
-
-                    if (!notInvoke) {
-                        var actionItem = {
-                            action: "modified",
-                            items: [collection[fromIndex], collection[toIndex]],
-                            parent: collection.parent,
-                            source: collection,
-                            toString: function () { return "action:'modified', actionItems.length:" + items.length + " source:" + collection.toString(); }
-                        };
-
-                        collection.bindInvokeCollection(actionItem);
-                    }
-                }
-            };
-            /**
-             * Returns the index of the first occurrence of a value in an array.
-             * @param {any} searchElement The value to locate in the array.
-             * @param {number} fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
-             * @returns {number} Returns the index.
-             */
-            collection.indexOf = function (searchElement, fromIndex) {
-
-                if (!searchElement) return -1;
-
-                return propertyNames.indexOf(searchElement.parentPropertyName, fromIndex);
-            };
-            /**
-             * Load collection.
-             * @param {object} obj data.
-             * @param {boolean} setIsModified .
-             */
-            collection.overwrite = function (obj, setIsModified) {
-
-                var overwriting = collection.isOverwriting;
-                collection.isOverwriting = true;
-                collection.init(obj, setIsModified);
-                if (setIsModified) collection.isModified = true;
-                else if (typeof setIsModified === "boolean") collection.isModified = false;
-                collection.isOverwriting = overwriting;
-            };
-            collection.init = function (obj, setIsModified) {
-
-                function parseID(str) { return str ? parseInt(str.substr(3)) : -1; }
-                function setObj(obj) {
-
-                    if (obj["-deleted"]) {
-                        if (collection[obj["-deleted"]])
-                            collection.remove(function (v) { return v.parentPropertyName === obj["-deleted"]; });
-                        if (removedIDs.indexOf(obj["-deleted"]) < 0)
-                            removedIDs.push(obj["-deleted"]);
-                        var id = parseID(obj["-deleted"]);
-                        id++;
-                        if (idCount < id) { idCount = id; }
-                    }
-                    else if (collection[obj["-id"]]) {
-                        if (typeof collection.overwrite === "function" && typeof collection.init === "function")
-                            collection.isOverwriting ? collection[obj["-id"]].overwrite(obj, setIsModified) : collection[obj["-id"]].init(obj, setIsModified);
-                        else {
-                            if (setIsModified && obj && obj.hasOwnProperty("isModified")) obj.isModified = true;
-                            collection[obj["-id"]] = obj;
-                        }
-                    }
-                    else {
-                        collection.add(obj, setIsModified);
-                    }
-                }
-
-                if (!collection.isOverwriting) {
-                    collection.clear();
-                }
-
-                if (Array.isArray(obj) || IsCollection(obj)) {
-
-                    if (obj.length > 0) {
-
-                        if (!collection.isOverwriting && obj.hasOwnProperty("isEmpty") && obj.isEmpty || typeof obj.filter === "function"
-                            && obj.filter(function (v) { return v === "-isEmpty"; }).length) {
-                            collection.clear();
-                            return;
-                        }
-
-                        if (IsCollection(obj)) { obj = obj.toArray(true); }
-
-                        obj.sort(function (a, b) {
-                            a = a["-id"] ? a["-id"] : a["-deleted"];
-                            b = b["-id"] ? b["-id"] : b["-deleted"];
-                            a = parseID(a);
-                            b = parseID(b);
-                            if (a > -1 && b > -1) {
-                                if (a < b) { return -1; }
-                                if (a > b) { return 1; }
-                            }
-                            else {
-                                if (a > b) { return -1; }
-                                if (a < b) { return 1; }
-                            }
-                            return 0;
-                        });
-
-                        obj.forEach(function (v) { setObj(v); });
-                    }
-                }
-                else if (obj !== undefined && obj !== null) {
-                    setObj(obj);
-                }
-                else if (obj === null) {
-                    collection.clear();
-                }
-
-                if (setIsModified) collection.isModified = true;
-                else if (typeof setIsModified === "boolean") collection.isModified = false;
-            };
-            /**
-             * Get json string.
-             * @param {function} predict 'predict' is selected function - Boolean function(key, value){...
-             * @returns {string} Returns JSON string.
-             */
-            collection.toJSON = function (predict) {
-
-                function getJSON(val, predict) {
-
-                    if (IsCollection(val) || IsItem(val)) {
-                        var json = val.toJSON(predict);
-                        if (json === "null") return "";
-                        return json;
-                    }
-                    if (val === undefined)
-                        return "";
-
-                    return JSON.stringify(val);
-                }
-
-                predict = typeof predict === "function" ? predict : function () { return true; };
-                var sArr = ["["];
-
-                if (collection.isEmpty) {
-                    sArr.push("\"-isEmpty\"");
-                }
-                else {
-                    removedIDs.forEach(function (id) {
-
-                        sArr.push("{\"-deleted\":\"" + id + "\"}");
-                        sArr.push(",");
-                    });
-
-                    collection.forEach(function (value, index) {
-
-                        if (value === undefined) return;
-
-                        var thisObj = {
-                            key: value.parentPropertyName,
-                            value: value,
-                            json: getJSON(value, predict),
-                            predict: predict
-                        };
-
-                        if (thisObj.json) {
-                            sArr.push(thisObj.json);
-                            sArr.push(",");
-                        }
-                    });
-                }
-
-                if (sArr[sArr.length - 1] === ",") { sArr.pop(); }
-                sArr.push("]");
-
-                var thisObj = {
-                    key: collection.parentPropertyName,
-                    value: collection,
-                    json: sArr.join(""),
-                    predict: predict
-                };
-
-                if (predict.call(thisObj, thisObj.key, thisObj.value)) {
-                    return thisObj.json;
-                }
-
-                return "";
-            };
-            collection.toPrettyJSON = function (predict) {
-                var json = collection.toJSON(predict);
-                if (json) {
-                    try { json = JSON.stringify(JSON.parse(json), null, 2); }
-                    catch (e) { console.error(e); }
-                }
-                return json;
-            };
-            /**
-             * Returns property names.
-             * @returns {string} .
-             */
-            collection.toString = function () {
-
-                return DC.IsDebuger ? "typeOf '" + collection["-type"] + "<" + collection.itemType + ">' length = " + collection.length : "";
-            };
-            /**
-             * Performs the specified action for each element in an array.
-             * @param {function} callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
-             */
-            collection.forEach = function (callbackfn) {
-
-                if (typeof callbackfn === "function") {
-
-                    propertyNames.forEach(function (propertyName, index) {
-                        callbackfn(collection[index], index, collection);
-                    });
-                }
-            };
-            /**
-            * Returns the elements of an array that meet the condition specified in a callback function.
-            * @param {function} callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
-            * @returns {array} Returns the elements of an array that meet the condition specified in a callback function.
-            */
-            collection.filter = function (callbackfn) {
-
-                var result = [];
-
-                if (typeof callbackfn === "function") {
-
-                    propertyNames.forEach(function (propertyName, index) {
-
-                        if (callbackfn(collection[index], index, collection))
-                            result.push(collection[index]);
-                    });
-                }
-
-                return result;
-            };
-            /**
-             * 
-             * @param {(val:any,index:number,collection:Collection)any} callbackfn
-             * @returns {any}
-             */
-            collection.find = function (callbackfn) {
-
-                if (typeof callbackfn === "function") {
-
-                    for (var i = 0; i < propertyNames.length; i++) {
-
-                        if (callbackfn(collection[i], i, collection))
-                            return collection[i];
-                    }
-                }
-            };
-            /**
-             * Sorts collection.
-             * @param {function} callbackfn Function used to determine the order of the elements. It is expected to return
-             * a negative value if first argument is less than second argument, zero if they're equal and a positive
-             * value otherwise. If omitted, the elements are sorted in ascending, ASCII character order.
-             * @param {boolean} notInvoke Invoke bind Collection update.
-             */
-            collection.sort = function (callbackfn, notInvoke) {
-
-                function swap(leftIndex, rightIndex) {
-                    if (leftIndex !== rightIndex)
-                        collection.moveItemTo(leftIndex, rightIndex, true);
-                }
-                function partition(left, right) {
-                    var pivot = collection[Math.floor((right + left) / 2)], //middle element
-                        i = left, //left pointer
-                        j = right; //right pointer
-                    while (i <= j) {
-                        //while (items[i] < pivot) {
-                        while (callbackfn(collection[i], pivot) < 0) {
-                            i++;
-                        }
-                        //while (collection[j] > pivot) {
-                        while (callbackfn(collection[j], pivot) > 0) {
-                            j--;
-                        }
-                        //if (i <= j) {
-                        if (i <= j) {
-                            swap(i, j); //sawpping two elements
-                            i++;
-                            j--;
-                        }
-                    }
-                    return i;
-                }
-                function quickSort(left, right) {
-                    var index;
-                    if (collection.length > 1) {
-                        index = partition(left, right); //index returned from partition
-                        if (left < index - 1) { //more elements on the left side of the pivot
-                            quickSort(left, index - 1);
-                        }
-                        if (index < right) { //more elements on the right side of the pivot
-                            quickSort(index, right);
-                        }
-                    }
-                }
-                quickSort(0, collection.length - 1);
-
-                if (!notInvoke) {
-                    var items = [];
-                    collection.forEach(function (item) {
-                        items.push(item);
-                    });
-                    var actionItem = {
-                        action: "modified",
-                        items: items,
-                        parent: collection.parent,
-                        source: collection,
-                        toString: function () { return "action:'modified', actionItems.length:" + items.length + " source:" + collection.toString(); }
-                    };
-
-                    collection.bindInvokeCollection(actionItem);
-                }
-            };
-            /**
-             * Returns array.
-             * @returns {array} .
-             */
-            collection.toArray = function (includedRemovedIDs) {
-
-                return (includedRemovedIDs ? removedIDs.concat(propertyNames) : propertyNames)
-                    .map(function (key) {
-                        return removedIDs.indexOf(key) > -1
-                            ? { "-deleted": key } :
-                            !values[key]
-                                ? undefined
-                                : values[key];
-                    });
-            };
-            collection.toObject = function () { return JSON.parse(collection.toJSON()); };
-
-            if (obj) { collection.init(obj, setIsModified); }
-
-            return collection;
+                callback(err);
+            }
         }
 
-        return Collection;
+        function _isStream(obj) {
 
-    })();
+            return obj
+                && typeof obj === "object"
+                && typeof obj.readable === "boolean";
+        }
 
-    var IsCollection = function (obj) { return obj && obj.isCollection ? true : false; };
-    DC.IsCollection = IsCollection;
+        function _it(text) {
+
+            this.is = _is;
+            this.next = _next;
+            this.isInfiniteLoop = _isInfiniteLoop;
+            this.setPosition = _setPosition;
+
+            var currentPosition = 0;
+
+            if (_isStream(text)) {
+
+                this.readStream = text;
+                this.text = '';
+                this.current = '';
+                this.following = '';
+                this.position = 0;
+                this.endCallback = null;
+
+                this.readStream.once("end", function () {
+
+                    if (it.endCallback) {
+
+                        it.endCallback();
+                    }
+                })
+            }
+            else {
+
+                this.readStream = null;
+                this.text = text + '';
+                this.current = '';
+                this.following = this.text.charAt(0);
+                this.position = 0;
+            }
+
+
+            function _isInfiniteLoop() {
+
+                if (currentPosition !== this.position) {
+
+                    currentPosition = this.position;
+
+                    return false;
+                }
+
+                throw "Incorrect entry.";
+            }
+
+            function _next(cb) {
+
+                if (it.readStream?.readable
+                    && (it.text.charAt(it.position) === '' || it.text.charAt(it.position + 1) === '')) {
+
+                    return _readStreamText(_next.bind(it, cb));
+                }
+                else {
+
+                    it.current = it.text.charAt(it.position);
+                    it.position++;
+                    it.following = it.text.charAt(it.position);
+
+                    return cb();
+                }
+            }
+
+            function _readStreamText(cb) {
+
+                var str = it.readStream.read();
+
+                if (str === null && it.readStream.readable) {
+
+                    it.readStream.once("readable", function () {
+
+                        it.endCallback = cb;
+
+                        return _readStreamText(cb);
+                    });
+                }
+                else {
+
+                    it.text += str;
+
+                    if (it.position > 1 && it.position < it.text.length && cb.name === 'bound _next') {
+
+                        it.text = it.text.substring(it.position - 1);
+                        it.position = 1;
+                        currentPosition = 0;
+                    }
+
+                    return cb();
+                }
+            }
+
+            function _is(str, cb) {
+
+                if (it.readStream && it.text.length - it.position < str.length) {
+
+                    return _readStreamText(_is.bind(it, str, cb));
+                }
+                else {
+
+                    return check();
+                }
+
+                function check() {
+
+                    if (it.text.substring(it.position - 1, it.position - 1 + str.length) === str) {
+
+                        it.position = it.position + str.length;
+                        it.current = it.text.charAt(it.position - 1);
+                        it.following = it.text.charAt(it.position);
+
+                        return cb(true);
+                    }
+
+                    return cb(false);
+                }
+            }
+
+            function _setPosition(pos) {
+
+                this.position = pos;
+                this.current = this.text.charAt(pos - 1);
+                this.following = this.text.charAt(pos);
+            }
+        }
+
+        function _get(val, def) {
+
+            if (it.current === '\r' && it.following === '\r'
+                || _typeof(val) !== _typeof(def)) {
+
+                return def;
+            }
+
+            return val;
+        }
+
+        function _whitespace(cb) {
+
+            var meta = [];
+            return whitespace(function () {
+
+                return _metadata(addMetadata);
+            });
+
+            function whitespace(cb) {
+
+                if (it.current === '\n'
+                    || it.current === '\r'
+                    || it.current === '\t'
+                    || it.current === '\u0020') {
+
+                    return it.next(whitespace.bind(this, cb));
+                }
+                else {
+
+                    return cb();
+                }
+            }
+
+            function addMetadata(metadata) {
+
+                if (metadata) {
+
+                    meta.push(metadata);
+
+                    return whitespace(function () {
+
+                        return _metadata(addMetadata);
+                    });
+                }
+
+                return cb(meta);
+            }
+        }
+
+        function _metadata(cb) {
+
+            if (it.current === '/' && it.following === '*') {
+
+                var metadata = '';
+
+                return it.next(it.next.bind(it, readMetadata));
+
+
+                function readMetadata() {
+
+                    if (it.current !== '*' && it.following !== '/') {
+
+                        metadata += it.current;
+                        return it.next(readMetadata);
+                    }
+                    else {
+
+                        return it.next(it.next.bind(it, function () {
+
+                            return cb(metadata);
+                        }));
+                    }
+                }
+            }
+
+            return cb();
+        }
+
+        function _setMetadata(obj, metadata, key = '') {
+
+            if (createDataContext.IgnoreMetadata) { return; }
+
+            if (metadata && metadata.length && obj && typeof obj === 'object') {
+
+                key = key + "";
+
+                Object.defineProperty(
+                    obj,
+                    '-metadata' + (key ? '-' + key : ''),
+                    {
+                        value: metadata,
+                        writable: true,
+                        configurable: true,
+                        enumerable: false
+                    }
+                );
+            }
+        }
+
+        function _value(val, cb) {
+
+            return _object(val, function (obj) {
+
+                if (obj !== undefined) { return cb(obj); }
+
+                return _array(val, function (arr) {
+
+                    if (arr !== undefined) { return cb(arr); }
+
+                    return _string(function (str) {
+
+                        if (str !== undefined) { return cb(str); }
+
+                        return _true(function (t) {
+
+                            if (t !== undefined) { return cb(t); }
+
+                            return _false(function (f) {
+
+                                if (f !== undefined) { return cb(f); }
+
+                                return _null(function (n) {
+
+                                    if (n !== undefined) { return cb(n); }
+
+                                    return _number(function (num) {
+
+                                        if (num !== undefined) { return cb(num); }
+
+                                        return cb();
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        }
+
+        function _string(cb) {
+
+            _whitespace(function (meta) {
+
+                var str = '';
+
+                if (it.current === '"') {
+
+                    it.next(function () {
+
+                        //if (!it.current) { return; }
+
+                        addLetter();
+                    });
+                }
+
+                else {
+
+                    Promise.resolve(1)
+                        .then(function () { cb(); })
+                        .catch(_error);
+                }
+
+
+                function addLetter() {
+
+                    if (it.current && it.current !== '"') {
+
+                        str += it.current;
+                        it.next(addLetter);
+                    }
+
+                    else if (it.current === '"') {
+
+                        it.next(function () {
+
+                            Promise.resolve(1)
+                                .then(function () { cb(str); })
+                                .catch(_error);
+                        });
+                    }
+
+                    else {
+
+                        throw "Incorrect string separator.";
+                    }
+                }
+            });
+        }
+
+        function _number(cb) {
+
+            _whitespace(function (meta) {
+
+                var str = "";
+                _negative(function (negative) {
+
+                    str += negative;
+
+                    if (it.current === "0") {
+
+                        str += "0";
+
+                        it.next(function () {
+
+                            if (it.current.toLowerCase() === "x") {
+
+                                str += "x";
+
+                                hex(cb);
+                            }
+
+                            else {
+
+                                fraction(cb);
+                            }
+                        });
+                    }
+                    else {
+
+                        return _digit(function (digit) {
+
+                            str += digit;
+
+                            fraction(cb);
+                        });
+                    }
+
+
+                    function hex(cb) {
+
+                        it.next(function () {
+
+                            _hex(function (hex) {
+
+                                str += hex;
+                                ret(cb);
+                            });
+                        });
+                    }
+
+                    function fraction(cb) {
+
+                        if (it.current === ".") {
+
+                            str += ".";
+
+                            it.next(function () {
+
+                                _digit(function (digit) {
+
+                                    str += digit;
+                                    exponent(cb);
+                                });
+                            });
+                        }
+
+                        else {
+
+                            ret(cb);
+                        }
+                    }
+
+                    function exponent(cb) {
+
+                        if (it.current && "eE".includes(it.current)) {
+
+                            str += "e";
+
+                            it.next(function () {
+
+                                _negative(function (negative) {
+
+                                    str += negative;
+
+                                    _positive(function (positive) {
+
+                                        str += positive;
+
+                                        _digit(function (digit) {
+
+                                            str += digit;
+
+                                            ret(cb);
+                                        });
+                                    });
+                                });
+                            });
+                        }
+
+                        else {
+
+                            ret(cb);
+                        }
+                    }
+
+                    function ret(cb) {
+
+                        if (!str) {
+
+                            Promise.resolve(1)
+                                .then(function () { cb(); })
+                                .catch(_error);
+                        }
+
+                        else {
+
+                            str = JSON.parse(str);
+
+                            Promise.resolve(1)
+                                .then(function () { cb(str); })
+                                .catch(_error);
+                        }
+                    }
+                });
+            });
+        }
+
+        function _negative(cb) {
+
+            if (it.current === '-') {
+
+                it.next(function () { return cb('-'); });
+            }
+
+            else {
+
+                cb('');
+            }
+        }
+
+        function _positive(cb) {
+
+            if (it.current === '+') {
+
+                it.next(function () { return cb('+'); });
+            }
+
+            else {
+
+                cb('');
+            }
+        }
+
+        function _hex(cb) {
+
+            var str = '';
+
+            add();
+
+
+            function add() {
+
+                if (it.current && "0123456789aAbBcCdDeEfF".includes(it.current)) {
+
+                    str += it.current;
+                    it.next(add);
+                }
+
+                else {
+
+                    cb(str);
+                }
+            }
+        }
+
+        function _digit(cb) {
+
+            var str = '';
+
+            add();
+
+
+            function add() {
+
+                if (it.current && "0123456789".includes(it.current)) {
+
+                    str += it.current;
+                    it.next(add);
+                }
+
+                else {
+
+                    cb(str);
+                }
+            }
+        }
+
+        function _object(val, cb) {
+
+            _whitespace(function (meta) {
+
+                if (it.current === '{') {
+
+                    it.next(function () {
+
+                        var obj = _get(val, {});
+
+                        _setMetadata(obj, meta);
+
+                        readKeyVal();
+
+
+                        function readKeyVal() {
+
+                            if (it.current !== '}' && !it.isInfiniteLoop()) {
+
+                                readKey();
+                            }
+
+                            else if (it.current === '}') {
+
+                                it.next(function () {
+
+                                    Promise.resolve(1)
+                                        .then(function () { cb(obj); })
+                                        .catch(_error);
+                                });
+                            }
+
+                            else {
+
+                                Promise.resolve(1)
+                                    .then(function () { cb(obj); })
+                                    .catch(_error);
+                            }
+                        }
+
+                        function readKey() {
+
+                            _whitespace(function (meta) {
+
+                                _key(function (k) {
+
+                                    _whitespace(function () {
+
+                                        readVal(k, meta);
+                                    });
+                                });
+                            });
+                        }
+
+                        function readVal(k, meta) {
+
+                            _value(obj[k], function (v) {
+
+                                _whitespace(function () {
+
+                                    if (it.current !== ',' && it.current !== '}') {
+
+                                        throw "Incorrect object separator.";
+                                    }
+
+                                    if (it.current === ',') {
+
+                                        it.next(function () {
+
+                                            set(k, v, meta);
+                                        });
+                                    }
+
+                                    else {
+
+                                        set(k, v, meta);
+                                    }
+                                });
+                            });
+                        }
+
+                        function set(k, v, meta) {
+
+                            if (typeof k === 'string' && v !== undefined) {
+
+                                if (reviver) {
+
+                                    Reflect.set(
+                                        obj,
+                                        k,
+                                        reviver.call(obj, k, v)
+                                    );
+                                }
+                                else {
+
+                                    obj[k] = v;
+                                }
+
+                                if (typeof obj[k] === 'object') {
+
+                                    _setMetadata(obj[k], meta);
+                                }
+                                else {
+
+                                    _setMetadata(obj, meta, k);
+                                }
+
+                                Promise.resolve(1)
+                                    .then(function () { readKeyVal(); })
+                                    .catch(_error);
+                            }
+                        }
+                    });
+                }
+
+                else {
+
+                    Promise.resolve(1)
+                        .then(function () { cb(); })
+                        .catch(_error);
+                }
+            });
+        }
+
+        function _key(cb) {
+
+            _whitespace(function () {
+
+                if (it.current === ":") {
+
+                    throw "Invalid object key.";
+                }
+
+                _string(function (key) {
+
+                    _whitespace(function () {
+
+                        if (typeof key !== "string" || it.current !== ":") {
+
+                            throw "Invalid object key.";
+                        }
+                        else {
+
+                            it.next(function () {
+
+                                Promise.resolve(1)
+                                    .then(function () { cb(key); })
+                                    .catch(_error);
+                            });
+                        }
+                    });
+                });
+            });
+        }
+
+        function _array(val, cb) {
+
+            _whitespace(function (meta) {
+
+                if (it.current === '[') {
+
+                    it.next(function () {
+
+                        var arr = _get(val, []);
+
+                        _setMetadata(arr, meta);
+
+                        var i = 0;
+
+                        readIndexVal();
+
+
+                        function readIndexVal() {
+
+                            if (it.current !== ']' && !it.isInfiniteLoop()) {
+
+                                readIndex();
+                            }
+
+                            else if (it.current === ']') {
+
+                                it.next(function () {
+
+                                    Promise.resolve(1)
+                                        .then(function () { cb(arr); })
+                                        .catch(_error);
+                                });
+                            }
+
+                            else {
+
+                                Promise.resolve(1)
+                                    .then(function () { cb(arr); })
+                                    .catch(_error);
+                            }
+                        }
+
+                        function readIndex() {
+
+                            _whitespace(function (meta) {
+
+                                // for update
+                                _index(function (index) {
+
+                                    if (isOverwriting && index === undefined) {
+
+                                        throw "Overwriting data -> index must be.";
+                                    }
+
+                                    _whitespace(function () {
+
+                                        readVal(index, meta);
+                                    });
+                                });
+                            });
+                        }
+
+                        function readVal(index, meta) {
+
+                            _value(arr[typeof index === "number" && index || i], function (v) {
+
+                                _whitespace(function () {
+
+                                    if (it.current !== ',' && it.current !== ']') {
+
+                                        throw "Incorrect array separator.";
+                                    }
+
+                                    if (it.current === ',') {
+
+                                        it.next(function () {
+
+                                            set(index, v, meta);
+                                        });
+                                    }
+
+                                    else {
+
+                                        set(index, v, meta);
+                                    }
+                                });
+                            });
+                        }
+
+                        function set(index, v, meta) {
+
+                            if (reviver) {
+
+                                v = reviver.call(arr, String(typeof index === "number" && index || i), v);
+                            }
+
+                            if (v === undefined && typeof index === "number" && index > -1) {
+
+                                arr.splice(index, 1);
+                            }
+                            else if (typeof index === "number" && arr[index] !== undefined) {
+
+                                arr[index] = v;
+                            }
+                            else {
+
+                                arr.push(v);
+                            }
+
+                            if (typeof arr[typeof index === "number" && index || i] === 'object') {
+
+                                _setMetadata(arr[typeof index === "number" && index || i], meta);
+                            }
+                            else {
+
+                                _setMetadata(arr, meta, typeof index === "number" && index || i);
+                            }
+
+                            i++;
+
+                            Promise.resolve(1)
+                                .then(function () { readIndexVal(); })
+                                .catch(_error);
+                        }
+                    });
+                }
+
+                else {
+
+                    Promise.resolve(1)
+                        .then(function () { cb(); })
+                        .catch(_error);
+                }
+            });
+        }
+
+        function _index(cb) {
+
+            _whitespace(function () {
+
+                if (it.current === ":") {
+
+                    throw "Invalid array index.";
+                }
+
+                var pos = it.position;
+
+                _number(function (nr) {
+
+                    _whitespace(function () {
+
+                        if (typeof nr !== "number" && it.current === ":") {
+
+                            throw "Invalid array index.";
+                        }
+
+                        if (typeof nr === "number" && it.current === ":") {
+
+                            it.next(function () {
+
+                                Promise.resolve(1)
+                                    .then(function () { cb(nr); })
+                                    .catch(_error);
+                            });
+                        }
+
+                        else {
+
+                            it.setPosition(pos);
+
+                            Promise.resolve(1)
+                                .then(function () { cb(); })
+                                .catch(_error);
+                        }
+                    });
+                });
+            });
+        }
+
+        function _true(cb) {
+
+            _whitespace(function () {
+
+                it.is('true', function (is) {
+
+                    Promise.resolve(1)
+                        .then(function () { cb(is ? true : undefined); })
+                        .catch(_error);
+                });
+            });
+        }
+
+        function _false(cb) {
+
+            _whitespace(function () {
+
+                it.is('false', function (is) {
+
+                    Promise.resolve(1)
+                        .then(function () { cb(is ? false : undefined); })
+                        .catch(_error);
+                });
+            });
+        }
+
+        function _null(cb) {
+
+            _whitespace(function () {
+
+                _whitespace(function () {
+
+                    it.is('null', function (is) {
+
+                        Promise.resolve(1)
+                            .then(function () { cb(is ? null : undefined); })
+                            .catch(_error);
+                    });
+                });
+            });
+        }
+    }
+
+    /**
+     * Stringify an object.
+     * @param {any} value Input value.
+     * @param {any} replacer Replacer. Optional. 
+     * @param {any} space Space. Optional. 
+     * @param {any} options Options. Optional. 
+     * @returns {string} Returns a string.
+     * 
+     * @typedef {Object} Options
+     * @property {boolean} modifiedData Select modified data. Optional.
+     * @property {boolean} setUnmodified Set unmodified. Optional.
+     * @property {WriteStream} writeStream Write stream. Optional.
+     * @property {function} callback Callback. Optional.
+     */
+    function stringify(value, replacer, space, { modifiedData = false, setUnmodified = false, writeStream = null, callback = null } = {}) {
+
+        var strJSON = '';
+        var isStream = _isStream(writeStream);
+        var isModified = false;
+
+
+        replacer = _replacer(replacer);
+
+        space = _space(space);
+
+        if (typeof replacer === "function") {
+
+            value = replacer.call(
+                { "": value },
+                "",
+                value
+            );
+        }
+
+        _value(value, 0, function () {
+
+
+            if (isStream) {
+
+                writeStream.end();
+            }
+
+            if (typeof callback === "function") {
+
+                callback();
+            }
+        });
+
+        return strJSON || undefined;
+
+
+        function _isStream(obj) {
+
+            return Boolean(obj
+                && typeof obj === "object"
+                && typeof obj.writable === "boolean");
+        }
+
+        function _replacer(replacer) {
+
+            if (Array.isArray(replacer)) {
+
+                replacer = fn(replacer);
+
+                function fn(arr) {
+
+                    var isInitial = true;
+
+                    return function (k, v) {
+
+                        if (isInitial) {
+
+                            isInitial = false;
+                            return v;
+                        }
+
+                        return arr?.includes(k) ? v : undefined;
+                    };
+                }
+            }
+
+            return function (k, v) {
+
+                if (typeof replacer === "function") {
+
+                    v = replacer.call(this, k, v);
+                }
+
+                if (typeof v?.toJSON === "function"
+                    && v.toJSON.name !== "_toJSON") {
+
+                    v = v.toJSON(k);
+                }
+
+                return v;
+            };
+        }
+
+        function _space(space) {
+
+
+            if (typeof space === "number") {
+
+                var l = space < 1 ? 1 : space > 10 ? 10 : space;
+                space = "";
+
+                for (var i = 0; i < l; i++) {
+
+                    space += " ";
+                }
+            }
+
+            if (typeof space === "string") {
+
+                space = space.substring(0, 10);
+            }
+            else { space = undefined; }
+
+            return space;
+            ;
+        }
+
+        function _lineSpace(text, level) {
+
+            if (!space || !level) { return text; }
+
+            return _space_(level) + text;
+
+            function _space_(level) {
+
+                if (!space || !level) { return ""; }
+
+                return get[level] || get();
+
+                function get() {
+
+                    get[level] = "";
+
+                    for (var i = 0; i < level; i++) { get[level] += space; }
+
+                    return get[level];
+                }
+            }
+        }
+
+        function _newline() {
+
+            if (!space) { return ""; }
+
+            return "\n";
+        }
+
+        function _metadata(value, level, key = "", cb) {
+
+            if (createDataContext.IgnoreMetadata || !value) { return cb(); }
+
+            var arr = [];
+            var i = -1;
+
+            key = key + "";
+            key = "-metadata" + (key ? "-" + key : "");
+
+            if (value[key] && !Array.isArray(value[key])) {
+
+                value[key] = [value[key]];
+            }
+
+            write();
+
+            return;
+
+            function write() {
+
+                i++;
+
+                if (value[key] && i < value[key].length) {
+
+                    if (space) {
+
+                        // write line
+                        return _write(
+                            _lineSpace(
+                                '/*' + value[key][i] + '*/' + _newline()
+                                , level
+                            ),
+                            write
+                        );
+                    }
+
+                    // write line
+                    return _write('/*' + value[key][i] + '*/', write);
+                }
+
+                return cb();
+            }
+        }
+
+        function _value(value, level, cb) {
+
+
+            var type = _typeof(value);
+
+            _meta(function () {
+
+                if (modifiedData) {
+
+                    //root
+                    if (!value?._parent) {
+
+                        _getValue(cb);
+                    }
+                    //selec all
+                    else if (isModified) {
+
+                        _setUnmodified();
+                        _getValue(cb);
+                    }
+
+                    else if (value?._isModified === true) {
+
+                        var isMod = isModified;
+                        isModified = true;
+                        _getValue(cb);
+                        isModified = isMod;
+                        _setUnmodified();
+                    }
+                    //selec modified
+                    else {
+
+                        _setUnmodified();
+
+                        _getValue(cb);
+                    }
+                }
+                else { _getValue(cb); }
+            });
+
+            return;
+
+
+            function _meta(cb) {
+
+                if (level === 0
+                    || modifiedData && value?._parent && !isModified && value?._isModified === true) {
+
+                    return _metadata(value, level, '', cb);
+                }
+
+                return cb();
+            }
+
+            function _setUnmodified() {
+
+                if (modifiedData && setUnmodified
+                    && value?._isDataContext) {
+
+                    //set _isModified false
+                    if (value._isModified === true) { value._isModified = false; }
+
+                    //removing propertyName
+                    if (Array.isArray(value._parent?._modified)) {
+
+                        var index = value._parent._modified.indexOf(value._propertyName);
+
+                        if (index > -1) {
+                            value._parent._modified.splice(index, 1);
+                        }
+                    }
+                }
+            }
+
+            function _getValue(cb) {
+
+                if (_object(cb)) { return; }
+
+                if (_string(cb)) { return; }
+
+                if (_bool(cb)) { return; }
+
+                if (_null(cb)) { return; }
+
+                if (_number(cb)) { return; }
+
+                return cb();
+            }
+
+            function _string(cb) {
+
+                if (type === "string") {
+
+                    _write('"' + value + '"' + '', cb);
+
+                    return true;
+                }
+            }
+
+            function _number(cb) {
+
+                if (type === "number") {
+
+                    _write(JSON.stringify(value), cb);
+
+                    return true;
+                }
+            }
+
+            function _object(cb) {
+
+                var startChar, isKeyVal, endChar;
+
+                if (type === "object") { startChar = '{'; isKeyVal = true; endChar = "}"; }
+                else if (type === "array") { startChar = '['; endChar = "]"; }
+
+                if (startChar && endChar) {
+
+                    // signal of updating the entire object
+                    if (modifiedData && value._isModified) {
+
+                        if (value._isModified) {
+
+                            startChar += '\r\r';
+                        }
+                        else {
+
+                            return cb();
+                        }
+                    }
+
+                    var keys = modifiedData && !value._isModified && !isModified
+                        ? Object.values(value._modified).sort()
+                        : Object.keys(value);
+
+                    // write emty object
+                    if (!keys.length) {
+
+                        if (modifiedData) {
+
+                            cb();
+
+                            return true;
+                        }
+
+                        _write(startChar + endChar, cb);
+
+                        return true;
+                    }
+
+                    // write startChar
+                    if (space) {
+
+                        startChar += startChar.includes("\r\r") ? "" : _newline();
+                    }
+
+                    _write(startChar, function () {
+
+                        _writeValues(function () {
+
+                            if (space) {
+
+                                return _write(_lineSpace(endChar, level), cb);
+                            }
+
+                            return _write(endChar, cb);
+                        });
+                    });
+
+                    return true;
+                }
+
+                return;
+
+
+                function _writeValues(cb) {
+
+                    var isMod = isModified;
+                    isModified = value._isModified;
+
+                    _writeKeyValMeta(keys.shift(), _next);
+
+                    return;
+
+
+                    function _next() {
+
+                        if (keys.length) {
+
+                            _writeKeyValMeta(keys.shift(), _next);
+                        }
+                        else {
+
+                            isModified = isMod;
+
+                            if (modifiedData) { value._isModified = false; }
+
+                            _write(_newline(), cb);
+                        }
+                    }
+                }
+
+                function _writeKeyValMeta(k, cb) {
+
+                    var val = value[k];
+
+                    if (typeof replacer === "function") {
+
+                        val = replacer.call(
+                            value,
+                            k,
+                            val
+                        );
+                    }
+
+                    if (val?._isDataContext) {
+
+                        _metadata(val, level + 1, "", _writeKeyVal);
+                    }
+                    else {
+
+                        _metadata(value, level + 1, k, _writeKeyVal);
+                    }
+
+                    return;
+
+
+                    function _writeKeyVal() {
+
+                        // minified array and modified data
+                        if (!space && !isKeyVal && modifiedData) { _writeKey(k + ':', true); }
+                        // minified array
+                        else if (!space && !isKeyVal) { _writeKey(''); }
+                        // minified object
+                        else if (!space && isKeyVal) { _writeKey('"' + k + '":'); }
+                        // array and modified data
+                        else if (!isKeyVal && modifiedData) { _writeKey(_lineSpace(k + ': ', level + 1), true); }
+                        // array
+                        else if (!isKeyVal) { _writeKey(_lineSpace('', level + 1)); }
+                        // object
+                        else { _writeKey(_lineSpace('"' + k + '": ', level + 1)); }
+
+                        return;
+                    }
+
+                    function _writeKey(strKey, isStartTrim) {
+
+                        _write(strKey, function () {
+
+                            // write value
+                            _value(val, level + 1, function () {
+
+                                // write separator
+                                _write(keys.length ? ',' + _newline() : '', setUnmodified);
+
+                                return;
+
+
+                                function setUnmodified() {
+
+                                    //set unmodified private val
+                                    if (modifiedData && setUnmodified) {
+
+                                        //removing propertyName
+                                        var index = value._modified.indexOf(k);
+
+                                        if (index > -1) {
+                                            value._modified.splice(index, 1);
+                                        }
+                                    }
+
+                                    return cb();
+                                }
+                            });
+                        });
+
+                        return;
+                    }
+                }
+            }
+
+            function _bool(cb) {
+
+                if (type === "boolean") {
+
+                    _write(value + '', cb);
+
+                    return true;
+                }
+            }
+
+            function _null(cb) {
+
+                if (type === "null") {
+
+                    _write("null", cb);
+
+                    return true;
+                }
+            }
+        }
+
+        function _write(str, cb) {
+
+            if (!isStream) {
+
+                strJSON += str;
+                cb();
+            }
+            else if (str) {
+
+                // write -> OK
+                if (writeStream.write(str)) {
+
+                    cb();
+                }
+                else {
+
+                    writeStream.once('drain', cb);
+                }
+            }
+        }
+    }
 
     //#endregion
 
+    createDataContext.CreateDataContext = createDataContext;
+    createDataContext.IgnoreMetadata = false;
+    createDataContext.Parse = parse;
+    createDataContext.ParsePromise = parsePromise;
+    createDataContext.Stringify = stringify;
 
-    DC.IsModifiedPredict = function (key, value, predict, not_modify_property_Modified) {
+    return createDataContext;
+})());
 
-        if (!predict || typeof predict === "function" && predict(key, value)) {
+/**
+ * Exporting the library
+ * @param {any} global Global object
+ * @param {string} libraryName Name of the library
+ * @param {any} exportable Exportable object
+ * @returns {void}
+ */
+function exportLibrary(global, libraryName, exportable) {
 
-            if (DC.IsItem(value)) {
-                if (value.isModified) {
-                    this.json = value.toJSON(predict);
-                    if (!not_modify_property_Modified)
-                        value.isModified = false;
-                }
-                else if (value && value.propertyNames
-                    && value.propertyNames.length === 1
-                    && value.propertyNames[0] === "value") {
-
-                    this.json = '';
-                }
-                else if (this.json !== '' && this.json !== undefined) {
-
-                    var obj = JSON.parse(this.json);
-                    delete obj["-type"];
-                    delete obj["-id"];
-                    delete obj["-isEmpty"];
-                    delete obj["value"];
-
-                    if (typeof obj !== "object" || !Object.keys(obj).length)
-                        this.json = '';
-                }
-            }
-            else if (DC.IsCollection(value)) {
-                if (value.isModified) {
-                    if (this.json === '')
-                        this.json = value.toJSON(predict);
-                    if (!not_modify_property_Modified)
-                        value.isModified = false;
-                }
-                else if (this.json !== '') {
-
-                    var arr = JSON.parse(this.json);
-                    if (Array.isArray(arr)) {
-                        arr = arr.filter(function (val) {
-                            return val !== "-isEmpty"
-                                && Object.keys(val).indexOf("-deleted") < 0;
-                        });
-                    }
-
-                    if (!Array.isArray(arr) || !arr.length)
-                        this.json = '';
-                }
-            }
-            else {
-                return false;
-            }
-
-            return this.json.length;
-        }
-        return false;
-    };
-
-    function typeExist(strType) {
-
-        if (isNode) return false;
-        if (typeof strType !== "string") return false;
-        var str = '', path = strType.split('.');
-        while (path.length) {
-            str += str === '' ? path.shift() : '.' + path.shift();
-            var o = eval(str);
-            if (!o || !(typeof o === "function" || path.length))
-                return false;
-        }
-        return true;
+    if (typeof exports === 'object' && typeof module !== 'undefined') {
+        // CommonJS
+        return module.exports = exportable;
     }
-    DC.CreateByType = function (strType, obj) {
-        if (typeExist(strType)) {
-            return eval(strType)(obj);
-        }
-        return null;
-    };
 
-    return DC;
+    if (typeof define === 'function' && define.amd) {
+        // AMD
+        return define(exportable);
+    }
 
-})));
+    // Browser
+    global = typeof globalThis !== 'undefined'
+        ? globalThis
+        : global || self;
+
+    global[libraryName] = exportable;
+}
