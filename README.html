@@ -1261,7 +1261,12 @@
 <li><a href="#features"><strong>Features</strong></a></li>
 <li><a href="#installation"><strong>Installation</strong></a></li>
 <li><a href="#testing"><strong>Testing</strong></a></li>
-<li><a href="#usage"><strong>Usage</strong></a></li>
+<li><a href="#usage"><strong>Usage</strong></a>
+<ul>
+<li><a href="#node.js-example">node.js example</a></li>
+<li><a href="#browser-example">browser example</a></li>
+</ul>
+</li>
 <li><a href="#references"><strong>References</strong></a>
 <ul>
 <li><a href="#createdatacontextdata-propertyname-parent">createDataContext(data, propertyName, parent)</a></li>
@@ -1283,7 +1288,7 @@
 <div class="col">
 <div class="p-2 markdown-body" data-bs-spy="scroll" data-bs-target="#list-headers" data-bs-offset="0" tabindex="0">
 <h1 id="data-context">data-context</h1>
-<p>Version: 2.0.0-beta.1<br>
+<p>Version: 2.0.0-beta.2<br>
 Watch data changes in the browser and node.js<br>
 This manual is also available in <a href="https://manuel-lohmus.github.io/data-context/README.html">HTML5</a>.</p>
 <h2 id="introduction">Introduction</h2>
@@ -1366,10 +1371,11 @@ Here are some potential use cases:</p>
 <li>Used extended JSON data format. Metadata and comments are supported.</li>
 </ul>
 <h2 id="installation">Installation</h2>
-<p>node.js:
-<code>npm install data-context</code></p>
-<p>browser:
-<code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context@2&quot; &gt;&lt;/script&gt;</code></p>
+<h3 id="node.js">node.js:</h3>
+<p><code>npm install data-context</code></p>
+<h3 id="browser">browser:</h3>
+<p><code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context@2&quot; &gt;&lt;/script&gt;</code></p>
+<h3 id="using-tiny-https-server-router">Using tiny-https-server router:</h3>
 <p>or use <a href="https://www.npmjs.com/package/tiny-https-server">'tiny-https-server'</a> router:
 <code>&lt;script async src=&quot;node_modules/data-context@2&quot;&gt;&lt;/script&gt;</code></p>
 <h2 id="testing">Testing</h2>
@@ -1378,14 +1384,14 @@ Here are some potential use cases:</p>
 <p>or in the <code>data-context</code> project directory:</p>
 <p><code>npm test</code></p>
 <p>or open in your browser:</p>
-<p><code>./node_modules/data-context/index.html</code></p>
+<p><code>./node_modules/data-context/index.test.html</code></p>
 <h2 id="usage">Usage</h2>
-<p>example.js:</p>
+<h3 id="node.js-example">node.js example:</h3>
 <pre><code class="language-javascript">'use strict';
 
 //Import the required modules.
-const { CreateDataContext, Parse } = require('data-context');
-//import { CreateDataContext, Parse } from &quot;data-context&quot;;
+const { createDataContext, parse } = require('data-context');
+//import { createDataContext, parse } from &quot;data-context&quot;;
 
 //Create a JSON string.
 var strJSON = `{
@@ -1396,11 +1402,11 @@ var strJSON = `{
 var intervalId = null;
 
 //Create data context.
-const context = Parse(
+const context = parse(
     //Parse the JSON string.
     strJSON,
     //Reviver function. Create data context.
-    CreateDataContext
+    createDataContext
 );
 
 //Listen to the count property.
@@ -1447,82 +1453,200 @@ intervalId = setInterval(() =&gt; {
     context.count++;
 }, 1000);
 </code></pre>
+<h3 id="browser-example">browser example:</h3>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;title&gt;data-context&lt;/title&gt;
+    &lt;!-- Module import - step 1.Import for a server-hosted HTML page --&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;./index.js&quot;&gt;&lt;/script&gt;
+    &lt;!-- Module import - step 1. Import for a standalone HTML page --&gt;
+    &lt;!--&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context&quot;&gt;&lt;/script&gt;--&gt;
+    &lt;script&gt;
+
+        'use strict';
+
+        // Module import - step 2.
+        importModules(['data-context'], function (DC) {
+
+            var { createDataContext, parse } = DC;
+
+            //Create a JSON string.
+            var strJSON = `{
+                &quot;count&quot;: 0
+            }`;
+
+            //Interval id.
+            var intervalId = null;
+
+            //Create data context.
+            const context = parse(
+                //Parse the JSON string.
+                strJSON,
+                //Reviver function. Create data context.
+                createDataContext
+            );
+
+            //Listen to the count property.
+            context.on('count', (event) =&gt; {
+
+                console.log('event:', event);
+
+                if (event.newValue &gt; 10) {
+
+                    console.log('I am dead.');
+                    clearInterval(intervalId);
+
+                    //I am dead. Remove listener.
+                    return false;
+                }
+
+                //I am live. Continue listening.
+                return true;
+            });
+
+            context.on('-change', (event) =&gt; {
+
+                //Stringify the changes.
+                var str = context.stringifyChanges(
+                    //Reviver function. Default is null.
+                    null,
+                    //Indentation. Default is 0.
+                    4,
+                    //Include only modified data. Default is true.
+                    true,
+                    //Set data to unmodified after stringification. Default is true.
+                    true
+                );
+                console.log('changes:', str);
+
+                //I am live. Continue listening.
+                return true;
+            });
+
+            //Start the interval.
+            intervalId = setInterval(() =&gt; {
+
+                //Increment the count property.
+                context.count++;
+            }, 1000);
+        });
+
+        /**
+         * Module import function - step 2.
+         * @param {string[]} importIdentifierArray Modules to import.
+         * @param {(...importModules:any[]) =&gt; void} callback Callback function.
+         */
+        function importModules(importIdentifierArray, callback) {
+
+            var thisScope = &quot;undefined&quot; != typeof globalThis
+                ? globalThis
+                : &quot;undefined&quot; != typeof window
+                    ? window
+                    : &quot;undefined&quot; != typeof global
+                        ? global : &quot;undefined&quot; != typeof self
+                            ? self
+                            : {};
+
+            waitModules();
+
+
+            function waitModules() {
+
+                if (importIdentifierArray.length) {
+
+                    for (let i = 0; i &lt; importIdentifierArray.length; i++) {
+
+                        if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                    }
+                }
+
+                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+            }
+        }
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h3&gt;Example 'data-context'&lt;/h3&gt;
+    &lt;p&gt;Press F12. Console results.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
 <h2 id="references">References</h2>
 <h3 id="createdatacontextdata-propertyname-parent"><em>createDataContext(data, propertyName, parent)</em></h3>
 <p>Create a data context from the data.</p>
 <p><strong>Type:</strong> <code>function</code></p>
 <p><strong>Parameters:</strong></p>
 <ul>
-<li>parameters: <code>data</code>  - The data object.</li>
-<li>parameters: <code>propertyName</code>  - The property name where the data is located. Default is null.</li>
-<li>parameters: <code>parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
+<li><code>data</code>  - The data object.</li>
+<li><code>propertyName</code>  - The property name where the data is located. Default is null.</li>
+<li><code>parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
 </ul>
 <p><strong>Returns:</strong></p>
 <ul>
-<li>returns: {<a href="#datacontext">DataContext</a>} - The data context.</li>
+<li>{<a href="#datacontext">DataContext</a>} - The data context.</li>
 </ul>
 <p><strong>Static Properties:</strong></p>
 <ul>
-<li>static property: <code>IgnoreMetadata</code>  - Global flag to ignore metadata and comments. Default is false.</li>
-<li>static method: <code>CreateDataContext</code> {(data: any, propertyName?: string, parent?: <a href="#datacontext">DataContext</a>) =&gt; <a href="#datacontext">DataContext</a>} - Create a data context from the data.</li>
-<li>static method: <code>Parse</code> {(str: string, reviver?: <a href="#reviver">Reviver</a>) =&gt; <a href="#datacontext">DataContext</a>} - Parse JSON string to the data context.</li>
-<li>static metohd: <code>ParsePromise</code> {(str: string, reviver?: <a href="#reviver">Reviver</a>) =&gt; Promise&lt;<a href="#datacontext">DataContext</a>&gt;} - Parse JSON string to the data context asynchonously. Returns a promise.</li>
-<li>static method: <code>Stringify</code> {(data: any, replacer?: Replacer, space?: number) =&gt; string} - Stringify the data to JSON string.</li>
+<li><code>ignoreMetadata</code>  - Global flag to ignore metadata and comments. Default is false.</li>
+<li><code>createDataContext</code> {(data: any, propertyName?: string, parent?: <a href="#datacontext">DataContext</a>) =&gt; <a href="#datacontext">DataContext</a>} - Create a data context from the data.</li>
+<li><code>parse</code> {(str: string, reviver?: <a href="#reviver">Reviver</a>) =&gt; <a href="#datacontext">DataContext</a>} - Parse JSON string to the data context.</li>
+<li><code>parsePromise</code> {(str: string, reviver?: <a href="#reviver">Reviver</a>) =&gt; Promise&lt;<a href="#datacontext">DataContext</a>&gt;} - Parse JSON string to the data context asynchronously. Returns a promise.</li>
+<li><code>stringify</code> {(data: any, replacer?: Replacer, space?: number) =&gt; string} - Stringify the data to JSON string.</li>
 </ul>
 <h3 id="datacontext"><em>DataContext</em></h3>
 <p>The data context Proxy object.</p>
 <p><strong>Type:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy"><code>Proxy</code></a></p>
 <p><strong>Properties:</strong></p>
 <ul>
-<li><p boolean="">property: <code>_isDataContext</code>  - The flag that indicates that the object is a data context. Default is true.</p>
-</li>
-<li><p boolean="">property: <code>_isModified</code>  - The flag that indicates that the object is modified. Default is false.</p>
-</li>
-<li><p>property: <code>_modified</code> {Array&lt;<a href="#propertyname">PropertyName</a>&gt;} - The array of modified properties.</p>
-</li>
-<li><p string="">property: <code>_propertyName</code>  - The property name where the data is located. Default is null.</p>
-</li>
-<li><p>property: <code>_parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</p>
-</li>
-<li><p>property: <code>_events</code> {Map&lt;string, <a href="#eventlistenerevent">EventListener</a>&gt;} - The map of event listeners.</p>
-</li>
-<li><p>method: <code>once</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener that will be called only once.</p>
-</li>
-<li><p>method: <code>on</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener.</p>
-</li>
-<li><p>method: <code>emit</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event.</p>
-</li>
-<li><p>method: <code>emitToParent</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event to the parent.</p>
-</li>
-<li><p>method: <code>toString</code> {() =&gt; string} - Returns the string representation of the data context.</p>
-</li>
-<li><p>method: <code>overwritingData</code> {(text: string, reviver?: <a href="#reviver">Reviver</a> ) =&gt; void} - Overwrite the data.</p>
-</li>
-<li><p>method: <code>stringifyChanges</code> {(reviver?: <a href="#reviver">Reviver</a>, space?: number|string, onlyModified?: boolean, setUnmodified?: boolean) =&gt; string} - Stringify the changes.</p>
-</li>
+<li><code>_isDataContext</code>  - The flag that indicates that the object is a data context. Default is true.</li>
+<li><code>_isModified</code>  - The flag that indicates that the object is modified. Default is false.</li>
+<li><code>_modified</code> {Array&lt;<a href="#propertyname">PropertyName</a>&gt;} - The array of modified properties.</li>
+<li><code>_propertyName</code>  - The property name where the data is located. Default is null.</li>
+<li><code>_parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
+<li><code>_events</code> {Map&lt;string, <a href="#eventlistenerevent">EventListener</a>&gt;} - The map of event listeners.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li><code>once</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener that will be called only once.</li>
+<li><code>on</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener.</li>
+<li><code>emit</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event.</li>
+<li><code>emitToParent</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event to the parent.</li>
+<li><code>toString</code> {() =&gt; string} - Returns the string representation of the data context.</li>
+<li><code>overwritingData</code> {(text: string, reviver?: <a href="#reviver">Reviver</a> ) =&gt; void} - Overwrite the data.</li>
+<li><code>stringifyChanges</code> {(reviver?: <a href="#reviver">Reviver</a>, space?: number|string, onlyModified?: boolean, setUnmodified?: boolean) =&gt; string} - Stringify the changes.</li>
 </ul>
 <h3 id="eventlistenerevent"><em>EventListener(event)</em></h3>
 <p>The event listener function.</p>
 <p><strong>Type:</strong> <code>function</code></p>
 <p><strong>Parameters:</strong></p>
 <ul>
-<li>parameters: <code>event</code>  - The event object.</li>
+<li><code>event</code>  - The event object.</li>
 </ul>
-<p>Returns:</p>
+<p><strong>Returns:</strong></p>
 <ul>
-<li>returns:  - The flag that indicates that the listener is alive.</li>
+<li> - The flag that indicates that the listener is alive.</li>
 </ul>
 <h3 id="eventobject"><em>EventObject</em></h3>
 <p>The event object.</p>
 <p><strong>Type:</strong> <code>object</code></p>
 <p><strong>Properties:</strong></p>
 <ul>
-<li>property: <code>eventName</code>  - The event name. 'new' | 'set' | 'delete' | 'change' | 'reposition'</li>
-<li>property: <code>target</code>  - The target data context.</li>
-<li>property: <code>propertyPath</code> {Array<PropertyName>} - The property path in array format.</li>
-<li>property: <code>parent</code>  - The parent data context.</li>
-<li>property: <code>oldValue</code>  - The old value.</li>
-<li>property: <code>newValue</code>  - The new value.</li>
+<li><code>eventName</code>  - The event name. 'new' | 'set' | 'delete' | 'reposition' | 'change'
+<ul>
+<li>'new' It happens when a new property is added to the data context.</li>
+<li>'set' It happens when an existing property is updated.</li>
+<li>'delete' It happens when a property is removed from the data context.</li>
+<li>'reposition' It happens when the position of an item in an array changes.</li>
+<li>'change' It happens when any change occurs in the data context.</li>
+</ul>
+</li>
+<li><code>target</code>  - The target data context.</li>
+<li><code>propertyPath</code> {Array<PropertyName>} - The property path in array format.</li>
+<li><code>parent</code>  - The parent data context.</li>
+<li><code>oldValue</code>  - The old value.</li>
+<li><code>newValue</code>  - The new value.</li>
 </ul>
 <h3 id="propertyname"><em>PropertyName</em></h3>
 <p>The property name.</p>

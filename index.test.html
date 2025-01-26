@@ -28,7 +28,7 @@
                 importScripts(href.replace("index.test.html", "index.js"));
 
                 var DC = this['data-context'],
-                    { Parse, ParsePromise, Stringify } = DC;
+                    { parse, parsePromise, stringify } = DC;
 
                 var obj =
                 {
@@ -55,9 +55,9 @@
 
                 var startTime, endTime, json, dc;
 
-                json = Stringify(obj, null, 4);
+                json = stringify(obj, null, 4);
                 //log(json);
-                dc = Parse(json, DC);
+                dc = parse(json, DC);
                 json = JSON.stringify(dc, null, 4);
                 //log(json);
 
@@ -69,14 +69,14 @@
                 log("10000 x JSON.parse(json)                   : ", (endTime - startTime).toFixed(2), "ms");
 
                 startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { Parse(json, null); }
+                for (var i = 0; i < 10000; i++) { parse(json, null); }
                 endTime = performance.now();
-                log("10000 x DC.Parse(json)                       : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.parse(json)                       : ", (endTime - startTime).toFixed(2), "ms");
 
                 startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { await ParsePromise(json, null); }
+                for (var i = 0; i < 10000; i++) { await parsePromise(json, null); }
                 endTime = performance.now();
-                log("10000 x DC.ParsePromise(json)          : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.parsePromise(json)          : ", (endTime - startTime).toFixed(2), "ms");
 
                 log();
 
@@ -86,14 +86,14 @@
                 log("10000 x JSON.parse(json, DC)           : ", (endTime - startTime).toFixed(2), "ms");
 
                 startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { Parse(json, DC); }
+                for (var i = 0; i < 10000; i++) { parse(json, DC); }
                 endTime = performance.now();
-                log("10000 x DC.Parse(json, DC)               : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.parse(json, DC)               : ", (endTime - startTime).toFixed(2), "ms");
 
                 startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { await ParsePromise(json, DC); }
+                for (var i = 0; i < 10000; i++) { await parsePromise(json, DC); }
                 endTime = performance.now();
-                log("10000 x DC.ParsePromise(json, DC)  : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.parsePromise(json, DC)  : ", (endTime - startTime).toFixed(2), "ms");
 
                 log(`\n*****************************************\n`);
 
@@ -102,9 +102,9 @@
                 endTime = performance.now();
                 log("10000 x JSON.stringify(obj)               : ", (endTime - startTime).toFixed(2), "ms");
 
-                for (var i = 0; i < 10000; i++) { Stringify(obj); }
+                for (var i = 0; i < 10000; i++) { stringify(obj); }
                 endTime = performance.now();
-                log("10000 x DC.Stringify(obj)                   : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.stringify(obj)                   : ", (endTime - startTime).toFixed(2), "ms");
 
                 log();
 
@@ -113,9 +113,9 @@
                 endTime = performance.now();
                 log("10000 x JSON.stringify(dc)                : ", (endTime - startTime).toFixed(2), "ms");
 
-                for (var i = 0; i < 10000; i++) { Stringify(dc); }
+                for (var i = 0; i < 10000; i++) { stringify(dc); }
                 endTime = performance.now();
-                log("10000 x DC.Stringify(dc)                    : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.stringify(dc)                    : ", (endTime - startTime).toFixed(2), "ms");
 
                 for (var i = 0; i < 10000; i++) { dc.toString(); }
                 endTime = performance.now();
@@ -128,9 +128,9 @@
                 endTime = performance.now();
                 log("10000 x JSON.stringify(dc, null, 2)   : ", (endTime - startTime).toFixed(2), "ms");
 
-                for (var i = 0; i < 10000; i++) { Stringify(dc, null, 2); }
+                for (var i = 0; i < 10000; i++) { stringify(dc, null, 2); }
                 endTime = performance.now();
-                log("10000 x DC.Stringify(dc, null, 2)       : ", (endTime - startTime).toFixed(2), "ms");
+                log("10000 x DC.stringify(dc, null, 2)       : ", (endTime - startTime).toFixed(2), "ms");
 
                 log(`\n*****************************************\n`);
 

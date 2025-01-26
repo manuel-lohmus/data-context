@@ -1,8 +1,8 @@
 ﻿'use strict';
 
 //Import the required modules.
-const { CreateDataContext, Parse } = require('data-context');
-//import { CreateDataContext, Parse } from "data-context";
+const { createDataContext, parse } = require('data-context');
+//import { createDataContext, parse } from "data-context";
 
 //Create a JSON string.
 var strJSON = `{
@@ -13,11 +13,11 @@ var strJSON = `{
 var intervalId = null;
 
 //Create data context.
-const context = Parse(
+const context = parse(
     //Parse the JSON string.
     strJSON,
     //Reviver function. Create data context.
-    CreateDataContext
+    createDataContext
 );
 
 //Listen to the count property.

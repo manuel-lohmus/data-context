@@ -1,7 +1,7 @@
 'use strict';
 
 // Import the required modules.
-const { CreateDataContext, Parse, Stringify } = require('data-context');
+const { createDataContext, parse, stringify } = require('data-context');
 
 // Define your data model.
 const initialData = {
@@ -16,7 +16,7 @@ const initialData = {
 };
 
 // Create a data context.
-const context = CreateDataContext(initialData);
+const context = createDataContext(initialData);
 
 // Add event listeners.
 context.user.on('name', (event) => {
@@ -41,6 +41,6 @@ context.settings.theme = "light";
 
 setTimeout(() => {
     // Serialize changes.
-    const data = Stringify(context, null, 4);
+    const data = stringify(context, null, 4);
     console.log('Serialized data:', data);
 }, 100);

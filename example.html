@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>data-context</title>
+    <!-- Module import - step 1.Import for a server-hosted HTML page -->
+    <script type="text/javascript" src="./index.js"></script>
+    <!-- Module import - step 1. Import for a standalone HTML page -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/data-context"></script>-->
+    <script>
+
+        'use strict';
+
+        // Module import - step 2.
+        importModules(['data-context'], function (DC) {
+
+            var { createDataContext, parse } = DC;
+
+            //Create a JSON string.
+            var strJSON = `{
+                                            "count": 0
+                                        }`;
+
+            //Interval id.
+            var intervalId = null;
+
+            //Create data context.
+            const context = parse(
+                //Parse the JSON string.
+                strJSON,
+                //Reviver function. Create data context.
+                createDataContext
+            );
+
+            //Listen to the count property.
+            context.on('count', (event) => {
+
+                console.log('event:', event);
+
+                if (event.newValue > 10) {
+
+                    console.log('I am dead.');
+                    clearInterval(intervalId);
+
+                    //I am dead. Remove listener.
+                    return false;
+                }
+
+                //I am live. Continue listening.
+                return true;
+            });
+
+            context.on('-change', (event) => {
+
+                //Stringify the changes.
+                var str = context.stringifyChanges(
+                    //Reviver function. Default is null.
+                    null,
+                    //Indentation. Default is 0.
+                    4,
+                    //Include only modified data. Default is true.
+                    true,
+                    //Set data to unmodified after stringification. Default is true.
+                    true
+                );
+                console.log('changes:', str);
+
+                //I am live. Continue listening.
+                return true;
+            });
+
+            //Start the interval.
+            intervalId = setInterval(() => {
+
+                //Increment the count property.
+                context.count++;
+            }, 1000);
+        });
+
+        /**
+         * Module import function - step 2.
+         * @param {string[]} importIdentifierArray Modules to import.
+         * @param {(...importModules:any[]) => void} callback Callback function.
+         */
+        function importModules(importIdentifierArray, callback) {
+
+            var thisScope = "undefined" != typeof globalThis
+                ? globalThis
+                : "undefined" != typeof window
+                    ? window
+                    : "undefined" != typeof global
+                        ? global : "undefined" != typeof self
+                            ? self
+                            : {};
+
+            waitModules();
+
+
+            function waitModules() {
+
+                if (importIdentifierArray.length) {
+
+                    for (let i = 0; i < importIdentifierArray.length; i++) {
+
+                        if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                    }
+                }
+
+                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+            }
+        }
+    </script>
+</head>
+<body>
+    <h3>Example 'data-context'</h3>
+    <p>Press F12. Console results.</p>
+</body>
+</html>

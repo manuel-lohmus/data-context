@@ -1,10 +1,9 @@
 ﻿/**  Copyright (c) 2024, Manuel Lõhmus (EUPL License). */
 
 
-importModules(this, ["data-context"], function (imported) {
+importModules(["data-context"], function (DC) {
 
-    var DC = imported["data-context"],
-        { Parse, Stringify } = imported["data-context"];
+    var { parse, stringify } = DC;
 
     /***** Init TESTS *********************************************************/
     testRunner('Init TESTS                    ', { skip: false }, (test) => {
@@ -155,74 +154,74 @@ importModules(this, ["data-context"], function (imported) {
     /***** Parse TESTS ********************************************************/
     testRunner('Parse TESTS                   ', { skip: false }, (test) => {
         test('parse(undefined)                ', { skip: false }, (check) => {
-            return check(Parse(undefined)).mustBe(undefined);
+            return check(parse(undefined)).mustBe(undefined);
         });
         test('parse(null)                     ', { skip: false }, (check) => {
-            return check(Parse(null)).mustBe(null);
+            return check(parse(null)).mustBe(null);
         });
         test('parse(0)                        ', { skip: false }, (check) => {
-            return check(Parse(0)).mustBe(0);
+            return check(parse(0)).mustBe(0);
         });
         test('parse(-0)                       ', { skip: false }, (check) => {
-            return check(Parse(-0)).mustBe(0);
+            return check(parse(-0)).mustBe(0);
         });
         test('parse(0x01)                     ', { skip: false }, (check) => {
-            return check(Parse(0x01)).mustBe(1);
+            return check(parse(0x01)).mustBe(1);
         });
         test('parse("")                       ', { skip: false }, (check) => {
-            return check(Parse("")).mustBe(undefined);
+            return check(parse("")).mustBe(undefined);
         });
         test('parse(\'""\')?.valueOf()        ', { skip: false }, (check) => {
-            return check(Parse('""')?.valueOf()).mustBe('');
+            return check(parse('""')?.valueOf()).mustBe('');
         });
         test('parse(\'"abc"\')?.valueOf()     ', { skip: false }, (check) => {
-            return check(Parse('"abc"')?.valueOf()).mustBe('abc');
+            return check(parse('"abc"')?.valueOf()).mustBe('abc');
         });
         test('parse(\'"\\uD800"\')?.valueOf() ', { skip: false }, (check) => {
-            return check(Parse('"\uD800"')?.valueOf()).mustBe('\uD800');
+            return check(parse('"\uD800"')?.valueOf()).mustBe('\uD800');
         });
         test('parse(\'null\')                 ', { skip: false }, (check) => {
-            return check(Parse('null')).mustBe(null);
+            return check(parse('null')).mustBe(null);
         });
         test('parse(\'false\')?.valueOf()     ', { skip: false }, (check) => {
-            return check(Parse('false')?.valueOf()).mustBe(false);
+            return check(parse('false')?.valueOf()).mustBe(false);
         });
         test('parse(\'true\')?.valueOf()      ', { skip: false }, (check) => {
-            return check(Parse('true')?.valueOf()).mustBe(true);
+            return check(parse('true')?.valueOf()).mustBe(true);
         });
         test('parse(\'0\')?.valueOf()         ', { skip: false }, (check) => {
-            return check(Parse('0')?.valueOf()).mustBe(0);
+            return check(parse('0')?.valueOf()).mustBe(0);
         });
         test('parse(\'123\')?.valueOf()       ', { skip: false }, (check) => {
-            return check(Parse('123')?.valueOf()).mustBe(123);
+            return check(parse('123')?.valueOf()).mustBe(123);
         });
         test('parse(\'-123\')?.valueOf()      ', { skip: false }, (check) => {
-            return check(Parse('-123')?.valueOf()).mustBe(-123);
+            return check(parse('-123')?.valueOf()).mustBe(-123);
         });
         test('parse(\'[]\')                   ', { skip: false }, (check) => {
-            return check(Array.isArray(Parse('[]'))).mustBe(true);
+            return check(Array.isArray(parse('[]'))).mustBe(true);
         });
         test('parse(\'{}\')                   ', { skip: false }, (check) => {
-            var data = Parse('{}')?.valueOf();
+            var data = parse('{}')?.valueOf();
             check(data).mustNotBe(null);
             check(typeof data).mustBe("object");
             check(Object.keys(data).length).mustBe(0);
             return true;
         });
         test('parse(\'[1]\')                  ', { skip: false }, (check) => {
-            var data = Parse('[1]');
+            var data = parse('[1]');
             check(Array.isArray(data)).mustBe(true);
             check(data[0]?.valueOf()).mustBe(1);
             return true;
         });
         test('parse(\'{"arr":[1]}\')          ', { skip: false }, (check) => {
-            var data = Parse('{"arr":[1]}');
+            var data = parse('{"arr":[1]}');
             check(Array.isArray(data.arr)).mustBe(true);
             check(data.arr[0]?.valueOf()).mustBe(1);
             return true;
         });
         test('parse(\'[{"nr":1}]\')           ', { skip: false }, (check) => {
-            var data = Parse('[{"nr":1}]');
+            var data = parse('[{"nr":1}]');
             check(Array.isArray(data)).mustBe(true);
             check(data[0].nr?.valueOf()).mustBe(1);
             return true;
@@ -231,102 +230,102 @@ importModules(this, ["data-context"], function (imported) {
     /***** Stringify TESTS ****************************************************/
     testRunner('Stringify TESTS               ', { skip: false }, (test) => {
         test('stringify(undefined)            ', { skip: false }, (check) => {
-            return check(Stringify(undefined)).mustBe(undefined);
+            return check(stringify(undefined)).mustBe(undefined);
         });
         test('stringify(null)                 ', { skip: false }, (check) => {
-            return check(Stringify(null)).mustBe('null');
+            return check(stringify(null)).mustBe('null');
         });
         test('stringify(true)                 ', { skip: false }, (check) => {
-            return check(Stringify(true)).mustBe('true');
+            return check(stringify(true)).mustBe('true');
         });
         test('stringify(false)                ', { skip: false }, (check) => {
-            return check(Stringify(false)).mustBe('false');
+            return check(stringify(false)).mustBe('false');
         });
         test('stringify(0)                    ', { skip: false }, (check) => {
-            return check(Stringify(0)).mustBe('0');
+            return check(stringify(0)).mustBe('0');
         });
         test('stringify(-0)                   ', { skip: false }, (check) => {
-            return check(Stringify(-0)).mustBe('0');
+            return check(stringify(-0)).mustBe('0');
         });
         test('stringify(0.123)                ', { skip: false }, (check) => {
-            return check(Stringify(0.123)).mustBe('0.123');
+            return check(stringify(0.123)).mustBe('0.123');
         });
         test('stringify(-0.123)               ', { skip: false }, (check) => {
-            return check(Stringify(-0.123)).mustBe('-0.123');
+            return check(stringify(-0.123)).mustBe('-0.123');
         });
         test('stringify(0.0000123)            ', { skip: false }, (check) => {
-            return check(Stringify(0.0000123)).mustBe('0.0000123');
+            return check(stringify(0.0000123)).mustBe('0.0000123');
         });
         test('stringify("")                   ', { skip: false }, (check) => {
-            return check(Stringify("")).mustBe('""');
+            return check(stringify("")).mustBe('""');
         });
         test('stringify("abc")                ', { skip: false }, (check) => {
-            return check(Stringify("abc")).mustBe('"abc"');
+            return check(stringify("abc")).mustBe('"abc"');
         });
         test('stringify("\\uD800")            ', { skip: false }, (check) => {
-            return check(Stringify("\uD800")).mustBe('"\uD800"');
+            return check(stringify("\uD800")).mustBe('"\uD800"');
         });
         test('stringify([])                   ', { skip: false }, (check) => {
-            return check(Stringify([])).mustBe('[]');
+            return check(stringify([])).mustBe('[]');
         });
         test('stringify({})                   ', { skip: false }, (check) => {
-            return check(Stringify({})).mustBe('{}');
+            return check(stringify({})).mustBe('{}');
         });
         test('stringify([1])                  ', { skip: false }, (check) => {
-            return check(Stringify([1])).mustBe('[1]');
+            return check(stringify([1])).mustBe('[1]');
         });
         test('stringify({arr:[1]})            ', { skip: false }, (check) => {
-            return check(Stringify({ arr: [1] })).mustBe('{"arr":[1]}');
+            return check(stringify({ arr: [1] })).mustBe('{"arr":[1]}');
         });
         test('stringify([{nr:1}])             ', { skip: false }, (check) => {
-            return check(Stringify([{ nr: 1 }])).mustBe('[{"nr":1}]');
+            return check(stringify([{ nr: 1 }])).mustBe('[{"nr":1}]');
         });
 
         test('stringify(DC(undefined))      ', { skip: false }, (check) => {
-            return check(Stringify(DC(undefined))).mustBe(undefined);
+            return check(stringify(DC(undefined))).mustBe(undefined);
         });
         test('stringify(DC(null))           ', { skip: false }, (check) => {
-            return check(Stringify(DC(null))).mustBe('null');
+            return check(stringify(DC(null))).mustBe('null');
         });
         test('stringify(DC(true))           ', { skip: false }, (check) => {
-            return check(Stringify(DC(true))).mustBe('true');
+            return check(stringify(DC(true))).mustBe('true');
         });
         test('stringify(DC(false))          ', { skip: false }, (check) => {
-            return check(Stringify(DC(false))).mustBe('false');
+            return check(stringify(DC(false))).mustBe('false');
         });
         test('stringify(DC(0))              ', { skip: false }, (check) => {
-            return check(Stringify(DC(0))).mustBe('0');
+            return check(stringify(DC(0))).mustBe('0');
         });
         test('stringify(DC(-0))             ', { skip: false }, (check) => {
-            return check(Stringify(DC(-0))).mustBe('0');
+            return check(stringify(DC(-0))).mustBe('0');
         });
         test('stringify(DC(0.123))          ', { skip: false }, (check) => {
-            return check(Stringify(DC(0.123))).mustBe('0.123');
+            return check(stringify(DC(0.123))).mustBe('0.123');
         });
         test('stringify(DC(-0.123))         ', { skip: false }, (check) => {
-            return check(Stringify(DC(-0.123))).mustBe('-0.123');
+            return check(stringify(DC(-0.123))).mustBe('-0.123');
         });
         test('stringify(DC(0.0000123))      ', { skip: false }, (check) => {
-            return check(Stringify(DC(0.0000123))).mustBe('0.0000123');
+            return check(stringify(DC(0.0000123))).mustBe('0.0000123');
         });
         test('stringify(DC(""))             ', { skip: false }, (check) => {
-            return check(Stringify(DC(""))).mustBe('""');
+            return check(stringify(DC(""))).mustBe('""');
         });
         test('stringify(DC("abc"))          ', { skip: false }, (check) => {
-            return check(Stringify(DC("abc"))).mustBe('"abc"');
+            return check(stringify(DC("abc"))).mustBe('"abc"');
         });
         test('stringify(DC([]))             ', { skip: false }, (check) => {
-            return check(Stringify(DC([]))).mustBe('[]');
+            return check(stringify(DC([]))).mustBe('[]');
         });
         test('stringify(DC({}))             ', { skip: false }, (check) => {
-            return check(Stringify(DC({}))).mustBe('{}');
+            return check(stringify(DC({}))).mustBe('{}');
         });
         test('stringify(DC([{ nr: 1 }]))    ', { skip: false }, (check) => {
-            return check(Stringify(DC([{ nr: 1 }]))).mustBe('[{"nr":1}]');
+            return check(stringify(DC([{ nr: 1 }]))).mustBe('[{"nr":1}]');
         });
 
         test('stringify(DC({n:1}),replacer) ', { skip: false }, (check) => {
-            var keys = [], data = Stringify(DC({ n: 1 }), function (k, v) {
+            var keys = [], data = stringify(DC({ n: 1 }), function (k, v) {
                 check(typeof this).mustBe("object");
                 check(typeof k).mustBe("string");
                 check(v).mustNotBe(undefined);
@@ -338,7 +337,7 @@ importModules(this, ["data-context"], function (imported) {
                 .done();
         });
         test('stringify({s:"a",n:1},["n"])  ', { skip: false }, (check) => {
-            check(Stringify(DC({ n: 1 }), ["n"])).mustBe('{"n":1}').done();
+            check(stringify(DC({ n: 1 }), ["n"])).mustBe('{"n":1}').done();
         });
         test('stringify({n:1,o:{toJSON:...}})', { skip: false }, (check) => {
             var obj = {
@@ -350,7 +349,7 @@ importModules(this, ["data-context"], function (imported) {
                     }
                 }
             };
-            check(Stringify(DC(obj))).mustBe('{"n":1,"o":{}}').done();
+            check(stringify(DC(obj))).mustBe('{"n":1,"o":{}}').done();
         });
     });
     /***** Complex TESTS ******************************************************/
@@ -381,8 +380,8 @@ importModules(this, ["data-context"], function (imported) {
     /*abc*/
     "str": "abc"
 }`;
-            var obj = Parse(jsme, DC);
-            var jsme2 = Stringify(obj, null, 4);
+            var obj = parse(jsme, DC);
+            var jsme2 = stringify(obj, null, 4);
             check(jsme2).mustBe(jsme);
             var json2 = JSON.stringify(obj, null, 4);
             check(json2).mustBe(json)
@@ -402,9 +401,9 @@ importModules(this, ["data-context"], function (imported) {
     "str":"abc"
 }`;
             var dc = DC({ test: { arr: [] }, str: "abc" });
-            var obj = Parse(json, dc);
+            var obj = parse(json, dc);
             obj.test.arr.pop();
-            var result = Stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
+            var result = stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
             check(result).mustBe(`{
     "test": {
         "arr": [\r\r            0: 123,
@@ -412,17 +411,17 @@ importModules(this, ["data-context"], function (imported) {
         ]
     }
 }`);
-            check(Stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe(undefined);
+            check(stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe(undefined);
             return true;
         });
         test('overwriting data  minify        ', { skip: false }, (check) => {
 
             var json = '{"test":{"arr":[123,"abc"]},"str":"abc"}';
             var dc = DC({ test: { arr: [] }, str: "abc" });
-            var obj = Parse(json, dc);
-            var result = Stringify(obj, null, "", { modifiedData: true, setUnmodified: true });
+            var obj = parse(json, dc);
+            var result = stringify(obj, null, "", { modifiedData: true, setUnmodified: true });
             check(result).mustBe('{"test":{"arr":[0:123,1:"abc"]}}');
-            check(Stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe(undefined);
+            check(stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe(undefined);
             return true;
         });
         test('overwriting array delete dc     ', { skip: false }, (check) => {
@@ -438,9 +437,9 @@ importModules(this, ["data-context"], function (imported) {
         { "nr": 7 }
     ]
 }`;
-            var obj = Parse(json, DC);
+            var obj = parse(json, DC);
             var arr = obj.arr.splice(0, 4);
-            var result = Stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
+            var result = stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
             check(result).mustBe(`{
     "arr": [\r\r        0: {
             "nr": 5
@@ -454,8 +453,8 @@ importModules(this, ["data-context"], function (imported) {
     ]
 }`);
             obj.arr.push(8);
-            Parse(result, obj);
-            result = Stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
+            parse(result, obj);
+            result = stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
             check(result).mustBe(`{
     "arr": [\r\r        0: {
             "nr": 5
@@ -482,9 +481,9 @@ importModules(this, ["data-context"], function (imported) {
     }
 }
 `;
-            var obj = Parse(json, DC);
+            var obj = parse(json, DC);
             delete obj.dc.key0;
-            var result = Stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
+            var result = stringify(obj, null, 4, { modifiedData: true, setUnmodified: true });
             check(result).mustBe(`{
     "dc": {
         "key0": 
@@ -500,7 +499,7 @@ importModules(this, ["data-context"], function (imported) {
         "key0": 0
     }
 ]`;
-            var obj = Parse(json, DC);
+            var obj = parse(json, DC);
             obj[0].key0 = 1;
             var result = obj.stringifyChanges(null, 4);
             check(result).mustBe(`[
@@ -811,47 +810,45 @@ The following options are supported:
 
 /**
  * Import modules.
- * @param {Object} global Global object.
- * @param {string[]} modules Modules to import.
- * @param {Function} runScript Function to run the script.
+ * @param {string[]} importIdentifierArray Modules to import.
+ * @param {(...importModules:any[]) => void} callback Callback function.
  */
-function importModules(global, modules, runScript) {
+function importModules(importIdentifierArray, callback) {
+
+    var thisScope = "undefined" != typeof globalThis
+        ? globalThis
+        : "undefined" != typeof window
+            ? window
+            : "undefined" != typeof global
+                ? global : "undefined" != typeof self
+                    ? self
+                    : {};
 
     if (typeof exports === 'object' && typeof module !== 'undefined') {
         // CommonJS
-        for (let i = 0; i < modules.length; i++) {
-            try {
-                global[modules[i]] = require(modules[i]);
-            } catch (err) {
-                global[modules[i]] = require('./index.js');
-            }
+
+        if (importIdentifierArray.length) {
+
+            importIdentifierArray = importIdentifierArray.map(function (id) { return require(id); });
         }
-        return runScript(global);
+
+        return module.exports = callback.call(thisScope, ...importIdentifierArray);
     }
-    else if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(modules, function () {
-            for (let i = 0; i < arguments.length; i++) {
-                global[modules[i]] = arguments[i];
-            }
-            runScript(global);
-        });
-    }
-    else {
-        // Browser
-        waitModules();
-    }
+
+    // Browser
+    waitModules();
+
 
     function waitModules() {
 
-        if (modules.length) {
+        if (importIdentifierArray.length) {
 
-            for (let i = 0; i < modules.length; i++) {
+            for (let i = 0; i < importIdentifierArray.length; i++) {
 
-                if (!global[modules[i]]) { return setTimeout(waitModules, 10); }
+                if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
             }
         }
 
-        runScript(global);
+        callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
     }
 }

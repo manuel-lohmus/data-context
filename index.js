@@ -1,7 +1,8 @@
 /**  Copyright (c) 2024, Manuel Lõhmus (MIT License). */
 "use strict";
 
-exportLibrary(this, "data-context", (function factory() {
+exportLibrary("data-context", [], function factory() {
+
 
     /**
      * Create a new proxy object with the same structure as the original object. 
@@ -187,7 +188,7 @@ exportLibrary(this, "data-context", (function factory() {
                             || listener.isActive === true) {
 
                             ret = true;
-                            if (!listener.call(this.Node && listener.isActive instanceof this.Node && listener.isActive, ...params)) {
+                            if (!listener.call("undefined" != typeof window && listener.isActive instanceof window.Node && listener.isActive, ...params)) {
 
                                 arr.splice(index, 1);
                             }
@@ -2495,38 +2496,59 @@ exportLibrary(this, "data-context", (function factory() {
 
     //#endregion
 
-    createDataContext.CreateDataContext = createDataContext;
-    createDataContext.IgnoreMetadata = false;
-    createDataContext.Parse = parse;
-    createDataContext.ParsePromise = parsePromise;
-    createDataContext.Stringify = stringify;
+    createDataContext.createDataContext = createDataContext;
+    createDataContext.ignoreMetadata = false;
+    createDataContext.parse = parse;
+    createDataContext.parsePromise = parsePromise;
+    createDataContext.stringify = stringify;
 
     return createDataContext;
-})());
+});
+
 
 /**
- * Exporting the library
- * @param {any} global Global object
- * @param {string} libraryName Name of the library
- * @param {any} exportable Exportable object
- * @returns {void}
+ * Exporting the library as a module.
+ * @param {string} exportIdentifier Export identifier
+ * @param {string[]} importIdentifierArray Import identifier array
+ * @param {(...importModules:any[]) => any} factory Factory function
+ * @returns {void} Returns export library
  */
-function exportLibrary(global, libraryName, exportable) {
+function exportLibrary(exportIdentifier, importIdentifierArray, factory) {
+
+    var thisScope = "undefined" != typeof globalThis
+        ? globalThis
+        : "undefined" != typeof window
+            ? window
+            : "undefined" != typeof global
+                ? global : "undefined" != typeof self
+                    ? self
+                    : {};
 
     if (typeof exports === 'object' && typeof module !== 'undefined') {
         // CommonJS
-        return module.exports = exportable;
-    }
 
-    if (typeof define === 'function' && define.amd) {
-        // AMD
-        return define(exportable);
+        if (importIdentifierArray.length) {
+
+            importIdentifierArray = importIdentifierArray.map(function (id) { return require(id); });
+        }
+
+        return module.exports = factory.call(thisScope, ...importIdentifierArray);
     }
 
     // Browser
-    global = typeof globalThis !== 'undefined'
-        ? globalThis
-        : global || self;
+    waitModules();
 
-    global[libraryName] = exportable;
+
+    function waitModules() {
+
+        if (importIdentifierArray.length) {
+
+            for (let i = 0; i < importIdentifierArray.length; i++) {
+
+                if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+            }
+        }
+
+        thisScope[exportIdentifier] = factory.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+    }
 }
