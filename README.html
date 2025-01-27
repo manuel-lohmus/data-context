@@ -1288,9 +1288,9 @@
 <div class="col">
 <div class="p-2 markdown-body" data-bs-spy="scroll" data-bs-target="#list-headers" data-bs-offset="0" tabindex="0">
 <h1 id="data-context">data-context</h1>
-<p>Version: 2.0.0-beta.2<br>
-Watch data changes in the browser and node.js<br>
-This manual is also available in <a href="https://manuel-lohmus.github.io/data-context/README.html">HTML5</a>.</p>
+<p>Watch data changes in the browser and node.js<br>
+This manual is also available in <a href="https://manuel-lohmus.github.io/data-context/README.html">HTML5</a>.<br>
+<a href="https://www.npmjs.com/package/data-context"><img src="https://badgen.net/npm/v/data-context" alt="npm-version" /></a></p>
 <h2 id="introduction">Introduction</h2>
 <p>It is a simple and easy-to-use library that can be used in the browser or in node.js.<br>
 You can create a context from the data, then listen for change events and stringify changes.<br>
@@ -1298,7 +1298,7 @@ Included event-emitter functions. Automatically detects changes in the data and 
 Designed for module 'data-context-binding' for binding data to the DOM and for module 'fs-broker' for working with files.<br>
 Using a single-page application (SPA) with the <a href="https://www.npmjs.com/package/data-context-binding">'data-context-binding'</a> module gives very good results.<br></p>
 <blockquote>
-<p>Please note, this version is not backward compatible with version 1.<br>
+<p>Please note, this version is not backward compatible with version 1.x<br>
 Please note that JSON string is not 100% compatible.<br>
 It has been extended to allow for incremental updates of JSON files.<br>
 Added the ability to include metadata and comments.<br>
@@ -1459,23 +1459,23 @@ intervalId = setInterval(() =&gt; {
 &lt;head&gt;
     &lt;meta charset=&quot;utf-8&quot; /&gt;
     &lt;title&gt;data-context&lt;/title&gt;
-    &lt;!-- Module import - step 1.Import for a server-hosted HTML page --&gt;
+    &lt;!-- STEP 1. Import the module. Import for an HTML page hosted on the server. --&gt;
     &lt;script type=&quot;text/javascript&quot; src=&quot;./index.js&quot;&gt;&lt;/script&gt;
-    &lt;!-- Module import - step 1. Import for a standalone HTML page --&gt;
+    &lt;!-- STEP 1. Import the module. Import for a standalone HTML page. --&gt;
     &lt;!--&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context&quot;&gt;&lt;/script&gt;--&gt;
     &lt;script&gt;
 
         'use strict';
 
-        // Module import - step 2.
+        // STEP 3. Import the module.
         importModules(['data-context'], function (DC) {
 
             var { createDataContext, parse } = DC;
 
             //Create a JSON string.
             var strJSON = `{
-                &quot;count&quot;: 0
-            }`;
+                                                                    &quot;count&quot;: 0
+                                                                }`;
 
             //Interval id.
             var intervalId = null;
@@ -1533,8 +1533,9 @@ intervalId = setInterval(() =&gt; {
             }, 1000);
         });
 
+        // STEP 2. Add module import function.
         /**
-         * Module import function - step 2.
+         * Module import function.
          * @param {string[]} importIdentifierArray Modules to import.
          * @param {(...importModules:any[]) =&gt; void} callback Callback function.
          */
@@ -1549,6 +1550,8 @@ intervalId = setInterval(() =&gt; {
                             ? self
                             : {};
 
+            if (!thisScope.modules) { thisScope.modules = {}; }
+
             waitModules();
 
 
@@ -1558,11 +1561,11 @@ intervalId = setInterval(() =&gt; {
 
                     for (let i = 0; i &lt; importIdentifierArray.length; i++) {
 
-                        if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                        if (!thisScope.modules[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
                     }
                 }
 
-                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope.modules[id]; }));
             }
         }
     &lt;/script&gt;
@@ -1633,7 +1636,7 @@ intervalId = setInterval(() =&gt; {
 <p><strong>Type:</strong> <code>object</code></p>
 <p><strong>Properties:</strong></p>
 <ul>
-<li><code>eventName</code>  - The event name. 'new' | 'set' | 'delete' | 'reposition' | 'change'
+<li><code>eventName</code>  - The event name. 'new' | 'set' | 'delete' | 'reposition' | '-change'
 <ul>
 <li>'new' It happens when a new property is added to the data context.</li>
 <li>'set' It happens when an existing property is updated.</li>

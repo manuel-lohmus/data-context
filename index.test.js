@@ -1,4 +1,4 @@
-﻿/**  Copyright (c) 2024, Manuel Lõhmus (EUPL License). */
+﻿/**  Copyright (c) 2024, Manuel Lõhmus (MIT). */
 
 
 importModules(["data-context"], function (DC) {
@@ -824,6 +824,8 @@ function importModules(importIdentifierArray, callback) {
                     ? self
                     : {};
 
+    if (!thisScope.modules) { thisScope.modules = {}; }
+
     if (typeof exports === 'object' && typeof module !== 'undefined') {
         // CommonJS
 
@@ -845,10 +847,10 @@ function importModules(importIdentifierArray, callback) {
 
             for (let i = 0; i < importIdentifierArray.length; i++) {
 
-                if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                if (!thisScope.modules[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
             }
         }
 
-        callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+        callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope.modules[id]; }));
     }
 }

@@ -30,9 +30,9 @@
 
 # data-context  
 
-Version: 2.0.0-beta.2<br>
 Watch data changes in the browser and node.js<br>
-This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html). 
+This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
+[![npm-version](https://badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)
 
 ## Introduction
 
@@ -42,7 +42,7 @@ Included event-emitter functions. Automatically detects changes in the data and 
 Designed for module 'data-context-binding' for binding data to the DOM and for module 'fs-broker' for working with files.<br>
 Using a single-page application (SPA) with the ['data-context-binding'](https://www.npmjs.com/package/data-context-binding) module gives very good results.<br>
 
-> Please note, this version is not backward compatible with version 1.<br>
+> Please note, this version is not backward compatible with version 1.x<br>
 > Please note that JSON string is not 100% compatible.<br>
 > It has been extended to allow for incremental updates of JSON files.<br>
 > Added the ability to include metadata and comments.<br>
@@ -210,23 +210,23 @@ intervalId = setInterval(() => {
 <head>
     <meta charset="utf-8" />
     <title>data-context</title>
-    <!-- Module import - step 1.Import for a server-hosted HTML page -->
+    <!-- STEP 1. Import the module. Import for an HTML page hosted on the server. -->
     <script type="text/javascript" src="./index.js"></script>
-    <!-- Module import - step 1. Import for a standalone HTML page -->
+    <!-- STEP 1. Import the module. Import for a standalone HTML page. -->
     <!--<script src="https://cdn.jsdelivr.net/npm/data-context"></script>-->
     <script>
 
         'use strict';
 
-        // Module import - step 2.
+        // STEP 3. Import the module.
         importModules(['data-context'], function (DC) {
 
             var { createDataContext, parse } = DC;
 
             //Create a JSON string.
             var strJSON = `{
-                "count": 0
-            }`;
+                                                                    "count": 0
+                                                                }`;
 
             //Interval id.
             var intervalId = null;
@@ -284,8 +284,9 @@ intervalId = setInterval(() => {
             }, 1000);
         });
 
+        // STEP 2. Add module import function.
         /**
-         * Module import function - step 2.
+         * Module import function.
          * @param {string[]} importIdentifierArray Modules to import.
          * @param {(...importModules:any[]) => void} callback Callback function.
          */
@@ -300,6 +301,8 @@ intervalId = setInterval(() => {
                             ? self
                             : {};
 
+            if (!thisScope.modules) { thisScope.modules = {}; }
+
             waitModules();
 
 
@@ -309,11 +312,11 @@ intervalId = setInterval(() => {
 
                     for (let i = 0; i < importIdentifierArray.length; i++) {
 
-                        if (!thisScope[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                        if (!thisScope.modules[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
                     }
                 }
 
-                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope[id]; }));
+                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope.modules[id]; }));
             }
         }
     </script>
@@ -390,7 +393,7 @@ The event object.
 **Type:** `object`
 
 **Properties:**
-- `eventName` {string} - The event name. 'new' | 'set' | 'delete' | 'reposition' | 'change'
+- `eventName` {string} - The event name. 'new' | 'set' | 'delete' | 'reposition' | '-change'
     - 'new' It happens when a new property is added to the data context.
     - 'set' It happens when an existing property is updated.
     - 'delete' It happens when a property is removed from the data context.
