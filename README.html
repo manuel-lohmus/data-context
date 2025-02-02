@@ -1290,7 +1290,7 @@
 <h1 id="data-context">data-context</h1>
 <p>Watch data changes in the browser and node.js<br>
 This manual is also available in <a href="https://manuel-lohmus.github.io/data-context/README.html">HTML5</a>.<br>
-<a href="https://www.npmjs.com/package/data-context"><img src="https://badgen.net/npm/v/data-context" alt="npm-version" /></a></p>
+<a href="https://www.npmjs.com/package/data-context"><img src="https://img.jsdelivr.com/badgen.net/npm/v/data-context" alt="npm-version" /></a></p>
 <h2 id="introduction">Introduction</h2>
 <p>It is a simple and easy-to-use library that can be used in the browser or in node.js.<br>
 You can create a context from the data, then listen for change events and stringify changes.<br>
@@ -1474,8 +1474,8 @@ intervalId = setInterval(() =&gt; {
 
             //Create a JSON string.
             var strJSON = `{
-                                                                    &quot;count&quot;: 0
-                                                                }`;
+                &quot;count&quot;: 0
+            }`;
 
             //Interval id.
             var intervalId = null;
@@ -1609,9 +1609,11 @@ intervalId = setInterval(() =&gt; {
 <li><code>_propertyName</code>  - The property name where the data is located. Default is null.</li>
 <li><code>_parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
 <li><code>_events</code> {Map&lt;string, <a href="#eventlistenerevent">EventListener</a>&gt;} - The map of event listeners.</li>
+<li><code>isChanged</code>  - The flag that indicates that the object is changed.</li>
 </ul>
 <p><strong>Methods:</strong></p>
 <ul>
+<li><code>resetChanges</code> {() =&gt; void} - Set the current and child objects to status - unmodified. Must be used to start tracking changes again.</li>
 <li><code>once</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener that will be called only once.</li>
 <li><code>on</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener.</li>
 <li><code>emit</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event.</li>

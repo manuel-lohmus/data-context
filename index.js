@@ -101,6 +101,30 @@
                     }
                 },
 
+                isChanged: {
+                    configurable: false, enumerable: false,
+
+                    get: function () { return Boolean(this._isModified || this._modified.length); }
+                },
+
+                resetChanges: {
+                    writable: true, configurable: false, enumerable: false,
+
+                    value: function _resetChanges() {
+
+                        for (var k of this._modified) {
+
+                            if (this[k] && "undefined" !== typeof this[k].resetChanges) {
+
+                                this[k].resetChanges();
+                            }
+                        }
+
+                        if ("undefined" !== typeof this._isModified) { this._isModified = false; }
+                        if ("undefined" !== typeof this._modified) { this._modified.length = 0; }
+                    }
+                },
+
                 // EventEmitter
                 _events: { value: {}, writable: true, configurable: false, enumerable: false },
 
@@ -2142,6 +2166,18 @@
                 if (value[key] && !Array.isArray(value[key])) {
 
                     value[key] = [value[key]];
+
+                    // remove from Ienumerable -metadata
+                    if (value.propertyIsEnumerable(key)) {
+
+                        Object.defineProperty(value, key, { enumerable: false });
+
+                        if (value._modified.includes(key)) {
+
+                            const index = value._modified.indexOf(key);
+                            if (index > -1) { value._modified.splice(index, 1); }
+                        }
+                    }
                 }
 
                 write();

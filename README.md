@@ -32,7 +32,7 @@
 
 Watch data changes in the browser and node.js<br>
 This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
-[![npm-version](https://badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)
+[![npm-version](https://img.jsdelivr.com/badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)
 
 ## Introduction
 
@@ -225,8 +225,8 @@ intervalId = setInterval(() => {
 
             //Create a JSON string.
             var strJSON = `{
-                                                                    "count": 0
-                                                                }`;
+                "count": 0
+            }`;
 
             //Interval id.
             var intervalId = null;
@@ -364,8 +364,10 @@ The data context Proxy object.
 - `_propertyName` {string} - The property name where the data is located. Default is null.
 - `_parent` {[DataContext](#datacontext)} - The parent data context. Default is null.
 - `_events` {Map<string, [EventListener](#eventlistenerevent)>} - The map of event listeners.
+- `isChanged` {boolean} - The flag that indicates that the object is changed.
   
 **Methods:**
+- `resetChanges` {() => void} - Set the current and child objects to status - unmodified. Must be used to start tracking changes again.
 - `once` {(propertyName: [PropertyName](#propertyname), listener: [EventListener](#eventlistenerevent)) => void} - Add an event listener that will be called only once.
 - `on` {(propertyName: [PropertyName](#propertyname), listener: [EventListener](#eventlistenerevent)) => void} - Add an event listener.
 - `emit` {(eventName: string, event: [EventObject](#eventobject)) => void} - Emit an event.

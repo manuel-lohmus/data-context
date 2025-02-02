@@ -1,7 +1,7 @@
 {
   "name": "data-context",
   "description": "Watch data changes in the browser and node.js",
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0-beta.4",
   "license": "MIT",
   "keywords": [
     "on",
@@ -23,7 +23,16 @@
     "data",
     "context",
     "model",
-    "data-model"
+    "data-model",
+    "listener",
+    "emitter",
+    "event",
+    "emit",
+    "get",
+    "path",
+    "key",
+    "value",
+    "structure"
   ],
   "main": "index.js",
   "browser": "index.js",
