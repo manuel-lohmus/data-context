@@ -201,8 +201,18 @@ importModules(["data-context"], function (DC) {
         test('parse(\'[]\')                   ', { skip: false }, (check) => {
             return check(Array.isArray(parse('[]'))).mustBe(true);
         });
+        test('parse(\'[\n]\')                 ', { skip: false }, (check) => {
+            return check(Array.isArray(parse('[\n]'))).mustBe(true);
+        });
         test('parse(\'{}\')                   ', { skip: false }, (check) => {
             var data = parse('{}')?.valueOf();
+            check(data).mustNotBe(null);
+            check(typeof data).mustBe("object");
+            check(Object.keys(data).length).mustBe(0);
+            return true;
+        });
+        test('parse(\'{\n}\')                 ', { skip: false }, (check) => {
+            var data = parse('{\n}')?.valueOf();
             check(data).mustNotBe(null);
             check(typeof data).mustBe("object");
             check(Object.keys(data).length).mustBe(0);

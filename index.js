@@ -769,6 +769,11 @@
 
                         meta = _whitespace();
 
+                        if (it.current === '}') {
+
+                            break;
+                        }
+
                         var k = _key();
 
                         _whitespace();
@@ -864,6 +869,11 @@
                     while (it.current !== ']' && !it.isInfiniteLoop()) {
 
                         meta = _whitespace();
+
+                        if (it.current === ']') {
+
+                            break;
+                        }
 
                         // for update
                         var index = _index();
