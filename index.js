@@ -433,7 +433,7 @@
             }
 
             var it = new _it(text);
-            var _this = isGlobal(this) ? undefined : this;
+            var _this = isGlobal(this) || this === createDataContext ? undefined : this;
             var isOverwriting = Boolean(_this);
 
             if (typeof reviver === "object") {
@@ -880,7 +880,8 @@
 
                         if (isOverwriting && index === undefined) {
 
-                            throw "Overwriting data -> index must be.";
+                            //throw "Overwriting data -> index must be.";
+                            index = i;
                         }
 
                         _whitespace();
@@ -1018,7 +1019,7 @@
             }
 
             var it = new _it(textOrReadStream);
-            var _this = isGlobal(this) ? undefined : this;
+            var _this = isGlobal(this) || this === createDataContext ? undefined : this;
             var isOverwriting = Boolean(_this);
 
             if (typeof reviver === "object") {
@@ -1840,7 +1841,8 @@
 
                                         if (isOverwriting && index === undefined) {
 
-                                            throw "Overwriting data -> index must be.";
+                                            //throw "Overwriting data -> index must be.";
+                                            index = i;
                                         }
 
                                         _whitespace(function () {

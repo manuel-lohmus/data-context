@@ -32,7 +32,7 @@
 
 Watch data changes in the browser and node.js<br>
 This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
-[![npm-version](https://img.jsdelivr.com/badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)
+<!--[![npm-version](https://badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)-->
 
 ## Introduction
 
