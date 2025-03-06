@@ -1596,7 +1596,8 @@
                     return true;
                 });
 
-                Promise.resolve().then(isInitData ? writeFile : readFile);
+                if (isInitData) { Promise.resolve().then(writeFile); }
+                else { readFile(); }
 
                 return data;
 
@@ -1680,6 +1681,8 @@
                     if (source && typeof source === "object") {
 
                         var keys = Object.keys(source);
+                        Object.keys(source).forEach(function (k) { keys.push('-metadata-' + k); });
+                        keys.push('-metadata');
 
                         for (var k of keys) {
 
@@ -1693,9 +1696,12 @@
                             }
                             else {
 
-                                if (typeof target[k] !== "object") { target[k] = {}; }
-
                                 target[k] = equate(target[k], source[k]);
+
+                                if (k.startsWith('-metadata')) {
+                                    Object.defineProperty(target, k, { enumerable: false });
+                                }
+
                             }
                         }
 
