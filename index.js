@@ -7,7 +7,7 @@
 
     exportModule("data-context", function factory() {
 
-        var isDebug = false;
+        //var isDebug = true;
 
         /**
          * Create a new proxy object with the same structure as the original object. 
@@ -903,7 +903,10 @@
 
                         if (isOverwriting && index === undefined) {
 
-                            if (isDebug) { throw "Overwriting data -> array index must be."; }
+                            if (typeof isDebug === 'boolean' && isDebug) {
+
+                                throw "Overwriting data -> array index must be.";
+                            }
                             console.warn("Overwriting data -> array index must be.");
                             index = i;
                         }
@@ -1620,7 +1623,7 @@
                         );
 
                         try {
-                            var obj = str ? DataContext.parse(str) : {};
+                            var obj = str ? createDataContext.parse(str) : {};
                             data.resetChanges();
                             data = equate(data, obj);
 
@@ -1628,7 +1631,7 @@
                         }
                         catch (err) {
 
-                            if (typeof isDebug === 'boolean' && inDebug) {
+                            if (typeof isDebug === 'boolean' && isDebug) {
 
                                 console.error(err);
                             }
@@ -1646,7 +1649,7 @@
                         isFileWriteInProgress = true;
 
                         var strChanges = data.stringifyChanges(null, 2);
-                        var strJson = DataContext.stringify(data, null, 2);
+                        var strJson = createDataContext.stringify(data, null, 2);
 
                         fs.writeFile(
                             filePath,
