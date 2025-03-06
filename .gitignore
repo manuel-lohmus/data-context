@@ -369,6 +369,5 @@ FodyWeavers.xsd
 /.gitignore
 /data-context.esproj
 /.gitattributes
-/browser_test.bat
 /.gitattributes
 /.gitignore

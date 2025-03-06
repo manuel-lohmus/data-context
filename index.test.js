@@ -424,7 +424,7 @@ importModules(["data-context"], function (DC) {
         ]
     }
 }`);
-            check(stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe(undefined);
+            check(stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe('{}');
             return true;
         });
         test('overwriting data  minify        ', { skip: false }, (check) => {
@@ -434,7 +434,7 @@ importModules(["data-context"], function (DC) {
             var obj = parse(json, dc);
             var result = stringify(obj, null, "", { modifiedData: true, setUnmodified: true });
             check(result).mustBe('{"test":{"arr":[0:123,1:"abc"]}}');
-            check(stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe(undefined);
+            check(stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe('{}');
             return true;
         });
         test('overwriting array delete dc     ', { skip: false }, (check) => {

@@ -74,11 +74,6 @@
                 endTime = performance.now();
                 log("10000 x DC.parse(json)                       : ", (endTime - startTime).toFixed(2), "ms");
 
-                startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { await parsePromise(json, null); }
-                endTime = performance.now();
-                log("10000 x DC.parsePromise(json)          : ", (endTime - startTime).toFixed(2), "ms");
-
                 log();
 
                 startTime = performance.now();
@@ -90,11 +85,6 @@
                 for (var i = 0; i < 10000; i++) { parse(json, DC); }
                 endTime = performance.now();
                 log("10000 x DC.parse(json, DC)               : ", (endTime - startTime).toFixed(2), "ms");
-
-                startTime = performance.now();
-                for (var i = 0; i < 10000; i++) { await parsePromise(json, DC); }
-                endTime = performance.now();
-                log("10000 x DC.parsePromise(json, DC)  : ", (endTime - startTime).toFixed(2), "ms");
 
                 log(`\n*****************************************\n`);
 
