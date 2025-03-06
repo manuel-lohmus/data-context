@@ -8,6 +8,7 @@
     exportModule("data-context", function factory() {
 
         //var isDebug = true;
+        var ignoreMetadata = false;
 
         /**
          * Create a new proxy object with the same structure as the original object. 
@@ -622,7 +623,7 @@
 
             function _setMetadata(obj, metadata, key = '') {
 
-                if (createDataContext.IgnoreMetadata) { return; }
+                if (ignoreMetadata) { return; }
 
                 if (metadata && metadata.length && obj && typeof obj === 'object') {
 
@@ -1182,7 +1183,7 @@
 
             function _metadata(value, level, key = "", cb) {
 
-                if (createDataContext.IgnoreMetadata || !value) { return cb(); }
+                if (ignoreMetadata || !value) { return cb(); }
 
                 var arr = [];
                 var i = -1;
@@ -1559,7 +1560,7 @@
         // is node.js
         if (typeof exports === 'object' && typeof module !== 'undefined') {
 
-            var path = require('path'), fs = require('fs');
+            var path = require('path'), fs = require('fs'), isSaveChanges = true;
 
             /**
              * 
@@ -1615,6 +1616,8 @@
                 }
                 function readFile() {
 
+                    if (!isSaveChanges) { return; }
+
                     if (!isFileWriteInProgress && fs.existsSync(filePath)) {
 
                         var str = fs.readFileSync(
@@ -1639,6 +1642,8 @@
                     }
                 }
                 function writeFile() {
+
+                    if (!isSaveChanges) { return; }
 
                     clearTimeout(fileWatchTimeout);
 
@@ -1706,13 +1711,32 @@
                 }
             }
 
-            createDataContext.watchJsonFile = watchJsonFile;
+            Object.defineProperties(createDataContext, {
+
+                watchJsonFile: { value: watchJsonFile, configurable: false, enumerable: false, writable: false },
+
+                isSaveChanges: {
+                    configurable: false, enumerable: false,
+                    get: function () { return isSaveChanges; },
+                    set: function (val) { isSaveChanges = Boolean(val); }
+                }
+            });
         }
 
-        createDataContext.createDataContext = createDataContext;
-        createDataContext.ignoreMetadata = false;
-        createDataContext.parse = parse;
-        createDataContext.stringify = stringify;
+        Object.defineProperties(createDataContext, {
+
+            createDataContext: { value: createDataContext, configurable: false, enumerable: false, writable: false },
+
+            parse: { value: parse, configurable: false, enumerable: false, writable: false },
+
+            stringify: { value: stringify, configurable: false, enumerable: false, writable: false },
+
+            ignoreMetadata: {
+                configurable: false, enumerable: false,
+                get: function () { return ignoreMetadata; },
+                set: function (val) { ignoreMetadata = Boolean(val); }
+            }
+        });
 
         return createDataContext;
     });
