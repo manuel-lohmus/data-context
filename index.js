@@ -276,6 +276,58 @@
          */
         function isGlobal(g) { return g === (typeof globalThis !== 'undefined' ? globalThis : global || self); }
 
+        /**
+         * Sync data objects
+         * @param {any} target
+         * @param {any} source
+         * @returns {any}
+         */
+        function syncData(target, source, removeUnusedKeys = true) {
+
+            if (!target && typeof target !== "object") { target = {}; }
+            if (Array.isArray(source) && !Array.isArray(target) && target !== null) { target = []; }
+
+            if (source && typeof source === "object") {
+
+                var keys = Object.keys(source);
+                Object.keys(source).forEach(function (k) { keys.push('-metadata-' + k); });
+                keys.push('-metadata');
+
+                for (var k of keys) {
+
+                    if (!source.hasOwnProperty(k)) continue;
+
+                    if (typeof source[k] === "function" || k === "__proto__" || k === "constructor") { continue; }
+
+                    if (!source[k] || typeof source[k] !== "object") {
+
+                        target[k] = source[k];
+                    }
+                    else {
+
+                        target[k] = syncData(target[k], source[k], removeUnusedKeys);
+
+                        if (k.startsWith('-metadata')) {
+                            Object.defineProperty(target, k, { enumerable: false });
+                        }
+
+                    }
+                }
+
+                if (removeUnusedKeys) {
+
+                    Object.keys(target).forEach(function (k) {
+
+                        if (!keys.includes(k)) { delete target[k]; }
+                    });
+
+                    if (Array.isArray(target)) { target.length = source.length; }
+                }
+            }
+
+            return target;
+        }
+
         //#region *** Handler ***
 
         var handler = { deleteProperty, set };
@@ -1575,7 +1627,18 @@
              * @property {string} strJson
              * @property {Proxy} datacontext
              */
-            function watchJsonFile(filePath, onDataChange, onFileChange, data) {
+            function watchJsonFile({
+                filePath = '',
+                data = null,
+                removeUnusedKeys = true,
+                onDataChange = null,
+                onFileChange = null
+            } = {}) {
+
+                if (!filePath.endsWith('.json')) {
+
+                    throw new Error('The `filePath` argument of the `watchJsonFile` function must end with the file extension `.json`.');
+                }
 
                 filePath = resolvePath(filePath);
 
@@ -1629,7 +1692,7 @@
                         try {
                             var obj = str ? createDataContext.parse(str) : {};
                             data.resetChanges();
-                            data = equate(data, obj);
+                            data = syncData(data, obj, removeUnusedKeys);
 
                             if (onFileChange) { setTimeout(onFileChange, 0, { datacontext: data }); }
                         }
@@ -1673,48 +1736,6 @@
                         );
                     });
                 }
-                function equate(target, source) {
-
-                    if (!target && typeof target !== "object") { target = {}; }
-                    if (Array.isArray(source) && !Array.isArray(target) && target !== null) { target = []; }
-
-                    if (source && typeof source === "object") {
-
-                        var keys = Object.keys(source);
-                        Object.keys(source).forEach(function (k) { keys.push('-metadata-' + k); });
-                        keys.push('-metadata');
-
-                        for (var k of keys) {
-
-                            if (!source.hasOwnProperty(k)) continue;
-
-                            if (typeof source[k] === "function" || k === "__proto__" || k === "constructor") { continue; }
-
-                            if (!source[k] || typeof source[k] !== "object") {
-
-                                target[k] = source[k];
-                            }
-                            else {
-
-                                target[k] = equate(target[k], source[k]);
-
-                                if (k.startsWith('-metadata')) {
-                                    Object.defineProperty(target, k, { enumerable: false });
-                                }
-
-                            }
-                        }
-
-                        Object.keys(target).forEach(function (k) {
-
-                            if (!keys.includes(k)) { delete target[k]; }
-                        });
-
-                        if (Array.isArray(target)) { target.length = source.length; }
-                    }
-
-                    return target;
-                }
             }
 
             Object.defineProperties(createDataContext, {
@@ -1732,6 +1753,8 @@
         Object.defineProperties(createDataContext, {
 
             createDataContext: { value: createDataContext, configurable: false, enumerable: false, writable: false },
+
+            syncData: { value: syncData, configurable: false, enumerable: false, writable: false },
 
             parse: { value: parse, configurable: false, enumerable: false, writable: false },
 
