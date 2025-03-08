@@ -1680,6 +1680,8 @@
                 }
                 function readFileSync() {
 
+                    if (!enableFileReadWrite) { return; }
+
                     var str = fs.readFileSync(
                         filePath,
                         { encoding: 'utf8' }
