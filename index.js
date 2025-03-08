@@ -1612,7 +1612,7 @@
         // is node.js
         if (typeof exports === 'object' && typeof module !== 'undefined') {
 
-            var path = require('path'), fs = require('fs'), isSaveChanges = true;
+            var path = require('path'), fs = require('fs'), enableFileReadWrite = true;
 
             /**
              * 
@@ -1642,9 +1642,9 @@
 
                 filePath = resolvePath(filePath);
 
-                var isInitData = Boolean(data) && !fs.existsSync(filePath),
-                    isFileWriteInProgress = false,
-                    fileWatchTimeout;
+                var isInitData = !fs.existsSync(filePath),
+                    isFileProcessing = false,
+                    writeTimeout;
 
                 if (!data) { data = createDataContext({}); }
                 if (!data._isDataContext) { data = createDataContext(data); }
@@ -1660,7 +1660,7 @@
                 });
 
                 if (isInitData) { Promise.resolve().then(writeFile); }
-                else { readFile(); }
+                else { readFileSync(); }
 
                 return data;
 
@@ -1678,74 +1678,117 @@
                     }
                     return filePath;
                 }
+                function readFileSync() {
+
+                    var str = fs.readFileSync(
+                        filePath,
+                        { encoding: 'utf8' }
+                    );
+                    loadData(str);
+                }
                 function readFile() {
 
-                    if (!isSaveChanges) { return; }
+                    if (!enableFileReadWrite) { return; }
 
-                    if (!isFileWriteInProgress && fs.existsSync(filePath)) {
+                    fs.access(filePath, fs.constants.R_OK, (err) => {
 
-                        var str = fs.readFileSync(
+                        if (err) { return; }
+
+                        wait(read);
+                    });
+
+                    function read() {
+
+                        isFileProcessing = true;
+
+                        fs.readFile(
                             filePath,
-                            { encoding: 'utf8' }
-                        );
+                            { encoding: 'utf8', flag: 'r' },
+                            function (err, str) {
 
-                        try {
-                            var obj = str ? createDataContext.parse(str) : {};
-                            data.resetChanges();
-                            data = syncData(data, obj, removeUnusedKeys);
+                                if (err) { throw err; }
 
-                            if (onFileChange) { setTimeout(onFileChange, 0, { datacontext: data }); }
-                        }
-                        catch (err) {
+                                loadData(str);
 
-                            if (typeof isDebug === 'boolean' && isDebug) {
+                                isFileProcessing = false;
+                            });
+                    }
+                }
+                function loadData(str) {
 
-                                console.error(err);
-                            }
+                    try {
+                        var obj = str ? createDataContext.parse(str) : {};
+                        data.resetChanges();
+                        data = syncData(data, obj, removeUnusedKeys);
+
+                        if (onFileChange) { setTimeout(onFileChange, 0, { datacontext: data }); }
+                    }
+                    catch (err) {
+
+                        if (typeof isDebug === 'boolean' && isDebug) {
+
+                            console.error(err);
                         }
                     }
                 }
                 function writeFile() {
 
-                    if (!isSaveChanges) { return; }
+                    if (!enableFileReadWrite) { return; }
 
-                    clearTimeout(fileWatchTimeout);
+                    clearTimeout(writeTimeout);
 
-                    fileWatchTimeout = setTimeout(() => {
+                    writeTimeout = setTimeout(function () {
 
-                        if (!data.isChanged || isFileWriteInProgress) { return; }
+                        wait(write);
+                    }, 500);
 
-                        isFileWriteInProgress = true;
 
-                        var strChanges = data.stringifyChanges(null, 2);
-                        var strJson = createDataContext.stringify(data, null, 2);
+                    function write() {
+
+                        if (!isInitData && !data.isChanged) { return; }
+
+                        isFileProcessing = true;
+
+                        var strChanges = data.stringifyChanges(null, 2),
+                            strJson = createDataContext.stringify(data, null, 2);
+
+                        isInitData = false;
 
                         fs.writeFile(
                             filePath,
                             strJson,
-                            { encoding: 'utf8' },
+                            { encoding: 'utf8', flag: 'w', flush: true },
                             (err) => {
 
                                 if (err) throw err;
 
                                 //data.resetChanges();
-                                isFileWriteInProgress = false;
+                                isFileProcessing = false;
 
-                                if (onDataChange) { setTimeout(onDataChange, 0, { strChanges, strJson, datacontext: data }); }
+                                if (onDataChange) {
+
+                                    setTimeout(onDataChange, 0, { strChanges, strJson, datacontext: data });
+                                }
                             }
                         );
-                    });
+                    }
+                }
+                function wait(cb) {
+
+                    if (isFileProcessing) { return setTimeout(wait, 100, cb); }
+
+                    cb();
                 }
             }
 
             Object.defineProperties(createDataContext, {
 
                 watchJsonFile: { value: watchJsonFile, configurable: false, enumerable: false, writable: false },
-
-                isSaveChanges: {
+                
+                enableFileReadWrite: {
                     configurable: false, enumerable: false,
-                    get: function () { return isSaveChanges; },
-                    set: function (val) { isSaveChanges = Boolean(val); }
+                    get: function () { return enableFileReadWrite; },
+                    set: function (val) { enableFileReadWrite = Boolean(val); }
                 }
             });
         }

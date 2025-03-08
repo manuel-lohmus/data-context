@@ -1,7 +1,7 @@
 {
   "name": "data-context",
   "description": "Watch data changes in the browser and node.js",
-  "version": "2.0.0-beta.11",
+  "version": "2.0.0-beta.12",
   "license": "MIT",
   "keywords": [
     "on",
@@ -49,7 +49,7 @@
   "scripts": {
     "test": "node index.test"
   },
-  "author": "Manuel Lõhmus <manuel@hauss.ee>",
+  "author": "Manuel Lõhmus",
   "files": [
     "index.d.ts",
     "index.js",
