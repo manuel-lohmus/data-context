@@ -529,7 +529,7 @@ importModules(["data-context"], function (DC) {
 /**
  * Test runner. Function to run unit tests in the console.
  * @author Manuel Lõhmus 2024 (MIT License)
- * @version 1.1.2
+ * @version 1.1.5
  * [2024-12-29] adde    d functionality to select tests by ID in the command line arguments (e.g. --testIDs=1 2 3)
  * @example `npm test '--'` or `node index.test.js`
  * @example `npm test '--' --help` or `node index.test.js --help`
@@ -550,7 +550,7 @@ importModules(["data-context"], function (DC) {
  * @example test("Test name", {skip:checkableObject === undefined}, function(check,done){...});
  * 
  * @callback Check Check function to check the test result.
- * @param {string} label Value name.
+ * @param {string} label Value name. Opional.
  * @param {any} value Value to check.
  * @returns {Validator} 
  * @example check('name', value).mustBe(true);
@@ -563,6 +563,7 @@ importModules(["data-context"], function (DC) {
  * @returns {void}
  * 
  * @typedef Validator
+ * @property {Check} check Check function to check the test result.
  * @property {(value:any)=>Validator} mustBe Check if the value is equal to the specified value.
  * @property {(value:any)=>Validator} mustNotBe Check if the value is not equal to the specified value.
  * @property {(value:any)=>Validator} mustInclude Check if the value is included to the specified value.
@@ -570,7 +571,9 @@ importModules(["data-context"], function (DC) {
  */
 function testRunner(runnerName, options, cb) {
 
-    this?.process?.on('uncaughtException', function noop() { });
+    var globalScope = this || globalThis;
+
+    globalScope?.process?.on('uncaughtException', function noop() { });
 
     testRunner.testRunnerOK = true;
     clearTimeout(testRunner.exitTimeoutID);
@@ -584,9 +587,9 @@ function testRunner(runnerName, options, cb) {
         strSKIP = "\t\t[\x1b[100m\x1b[97m  SKIP  \x1b[0m]",
         strTestsERR = "[\x1b[41m\x1b[97m The tests failed! \x1b[0m]",
         strTestsDONE = "[\x1b[42m\x1b[97m The tests are done! \x1b[0m]",
-        { help, testids } = _arg_options();
+        { help, testID } = arg_options();
 
-    if (help || help === '') {
+    if (help !== undefined) {
 
         console.log(`
 npm test '--' [OPTION1=VALUE1] [OPTION2=VALUE2] ...
@@ -595,15 +598,16 @@ node index.test.js [OPTION1=VALUE1] [OPTION2=VALUE2] ...
 
 The following options are supported:
     --help      Display this help
-    --testIDs   Number of the test to run (e.g. node index.test.js --testIDs=1 2 3)
+    --testID   Number of the test to run (e.g. node index.test.js --testID=1 --testID=2 --testID=3)
     `);
 
-        if (this?.process?.argv[1].endsWith(".js")) { exitPressKey(); }
+        if (globalScope?.process?.argv[1].endsWith(".js")) { exitPressKey(); }
+        else { globalScope?.process?.exit(0); }
 
         return;
     }
 
-    if (testids) { testids = testids.split(' ').filter((id) => id); }
+    if (!Array.isArray(testID)) { testID = testID ? [testID] : []; }
 
     //skip all tests
     if (options?.skip) {
@@ -662,7 +666,7 @@ The following options are supported:
             strERR = "\t[\x1b[41m\x1b[97m FAILED \x1b[0m] -> ";
 
         //skip
-        if (options?.skip || testids && !testids.includes(id + '')) {
+        if (options?.skip || testID && testID.length && !testID.includes(id)) {
 
             log(id, label, "\t", strSKIP);
             testCompleted();
@@ -710,18 +714,24 @@ The following options are supported:
              * @type {Validator}
              */
             return {
+
+                check,
+
                 mustBe: function mustBe(mustBe) {
                     if (value !== mustBe) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must be \x1b[0m '" + mustBe + "'"); }
                     return this;
                 },
+
                 mustNotBe: function mustNotBe(mustNotBe) {
                     if (value === mustNotBe) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must not be \x1b[0m '" + mustNotBe + "'"); }
                     return this;
                 },
+
                 mustInclude: function mustInclude(mustInclude) {
                     if (!value?.includes || !value.includes(mustInclude)) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must include \x1b[0m '" + mustInclude + "'"); }
                     return this;
                 },
+
                 done
             };
         }
@@ -747,77 +757,112 @@ The following options are supported:
                 print_stdout();
             }
 
-            this?.process?.removeAllListeners('uncaughtException');
+            globalScope?.process?.removeAllListeners('uncaughtException');
 
-            if (this?.process?.argv[1].endsWith(".js")) {
+            if (globalScope?.process?.argv[1].endsWith(".js")) {
 
                 exitPressKey();
             }
-            else if (this?.process) {
+            else if (globalScope?.process) {
 
                 if (!testRunnerOK) { testRunner.testRunnerOK = false; }
 
-                testRunner.exitTimeoutID = setTimeout(function () {
+                testRunner.exitTimeoutID = setTimeout(function (exit) {
 
-                    process.exit(testRunner.testRunnerOK ? 0 : 1);
-                }, 100);
+                    exit(testRunner.testRunnerOK ? 0 : 1);
+
+                }, 100, globalScope?.process?.exit);
             }
         }
     }
 
     function exitPressKey() {
 
-        process.stdin.setRawMode(true);
-        process.stdin.resume();
-        process.stdin.on('data', process.exit.bind(process, testRunnerOK ? 0 : 1));
+        globalScope?.process?.stdin.setRawMode(true);
+        globalScope?.process?.stdin.resume();
+        globalScope?.process?.stdin.on('data', globalScope?.process?.exit.bind(globalScope?.process, testRunnerOK ? 0 : 1));
 
         console.log('Press any key to exit');
     }
 
-    function _arg_options() {
+    function arg_options() {
 
-        if (!this?.process) { return {}; }
+        if ("undefined" === typeof globalScope?.process) { return {}; }
 
-        var key;
+        var isKey = false,
+            key = '',
+            values,
+            args = globalScope?.process?.argv
+                .slice(2)
+                .join('')
+                .split('')
+                .reduce(function (args, c) {
 
-        return process.argv.slice(2).reduce(function (opt, keyVal) {
 
-            var [_key, _val] = keyVal.split('=');
+                    if (c === '-') {
+                        if (isKey && key && !args[key]) { args[key] = ['true']; }
+                        isKey = true;
+                        key = '';
+                        return args;
+                    }
 
-            _key = (_key + '').trim();
+                    if (c === '=') {
+                        isKey = false;
+                        if (!args[key]) { args[key] = []; }
+                        values = args[key];
+                        values.push('');
+                        return args;
+                    }
 
-            if (_key[0] === '-') {
+                    if (isKey && /\s/.test(c)) {
+                        return args;
+                    }
 
-                if (_val === undefined) {
+                    if (isKey) {
+                        key += c;
+                        return args;
+                    }
 
-                    key = _trimKey(_key);
-                    opt[key] = true;
+                    values[values.length - 1] += c;
 
-                    return opt;
-                }
+                    return args;
+                }, {});
 
-                if (_val[0] !== '-') {
+        if (isKey && key && !args[key]) { args[key] = ['true']; }
 
-                    _val = (_val + '').trim();
-                    key = _trimKey(_key);
-                    opt[key] = _val;
-                }
+        Object.keys(args).forEach((k) => {
+
+            if (!args[k].length) {
+
+                args[k] = '';
+
+                return;
             }
-            else if (_key) {
 
-                opt[key] = typeof opt[key] === 'string' ? opt[key] + ' ' + _key : _key;
+            if (args[k].length === 1) {
+
+                args[k] = convertValue(args[k][0].trim());
+
+                return;
             }
 
-            return opt;
+            args[k] = args[k].map((s) => {
 
-            function _trimKey(key) {
+                return convertValue(s.trim());
+            });
+        });
 
-                if (key[0] === '-') { key = key.slice(1); }
-                if (key[0] === '-') { key = key.slice(1); }
+        return args;
 
-                return key.toLowerCase();
-            }
-        }, {});
+        function convertValue(val) {
+
+            if (val === 'null') { return null; }
+            if (val === 'true') { return true; }
+            if (val === 'false') { return false; }
+            if (!isNaN(Number(val))) { return Number(val); }
+
+            return val;
+        }
     }
 }
 

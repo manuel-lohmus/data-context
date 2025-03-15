@@ -556,7 +556,7 @@
             function _it(text) {
 
                 var currentPosition = 0;
-                this.text = text + '';
+                this.text = removeBOM(text + '');
                 this.position = 1;
                 this.current = this.text.charAt(0);
                 this.following = this.text.charAt(1);
@@ -602,6 +602,15 @@
                     this.position = pos;
                     this.current = this.text.charAt(pos - 1);
                     this.following = this.text.charAt(pos);
+                }
+
+                function removeBOM(str) {
+
+                    if (str.charCodeAt(0) === 65279) {
+
+                        return str.slice(1);
+                    }
+                    return str;
                 }
             }
 
@@ -1086,7 +1095,7 @@
          * @param {any} value Input value.
          * @param {any} replacer Replacer. Optional. 
          * @param {any} space Space. Optional. 
-         * @param {any} options Options. Optional. 
+         * @param {Options} options Options. Optional. 
          * @returns {string} Returns a string.
          * 
          * @typedef {Object} Options
@@ -1094,9 +1103,12 @@
          * @property {boolean} setUnmodified Set unmodified. Optional.
          * @property {WriteStream} writeStream Write stream. Optional.
          * @property {function} callback Callback. Optional.
+         * @property {boolean} includeBOM Add the BOM to the beginning of the string. Optional.
          */
-        function stringify(value, replacer, space, { modifiedData = false, setUnmodified = false, writeStream = null, callback = null } = {}) {
+        function stringify(value, replacer, space, { modifiedData = false, setUnmodified = false, writeStream = null, callback = null, includeBOM = false } = {}) {
 
+            // Define the BOM character
+            var BOM = String.fromCharCode(65279);
             var strJSON = '';
             var isStream = _isStream(writeStream);
             var isModified = false;
@@ -1125,11 +1137,11 @@
 
                 if (typeof callback === "function") {
 
-                    callback();
+                    callback(includeBOM && strJSON ? BOM + strJSON : strJSON || undefined);
                 }
             });
 
-            return strJSON || undefined;
+            return includeBOM && strJSON ? BOM + strJSON : strJSON || undefined;
 
 
             function _isStream(obj) {
@@ -1686,6 +1698,7 @@
                         filePath,
                         { encoding: 'utf8' }
                     );
+                    
                     loadData(str);
                 }
                 function readFile() {
@@ -1786,7 +1799,7 @@
             Object.defineProperties(createDataContext, {
 
                 watchJsonFile: { value: watchJsonFile, configurable: false, enumerable: false, writable: false },
-                
+                //isSaveChanges
                 enableFileReadWrite: {
                     configurable: false, enumerable: false,
                     get: function () { return enableFileReadWrite; },
