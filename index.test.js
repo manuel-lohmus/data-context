@@ -1,5 +1,6 @@
 ﻿/**  Copyright (c) 2024, Manuel Lõhmus (MIT). */
 
+"use strict";
 
 importModules(["data-context"], function (DC) {
 
@@ -122,7 +123,7 @@ importModules(["data-context"], function (DC) {
         });
         test('ARRAY pop                       ', { skip: false }, (check) => {
             var dc = DC([1, 2, 3]);
-            dc.on("-delete", function (event) {
+            dc.on("-", function (event) {
 
                 check(typeof event.oldValue).mustBe("number");
                 check(typeof parseInt(event.propertyPath.pop())).mustBe("number");
@@ -201,7 +202,7 @@ importModules(["data-context"], function (DC) {
         test('parse(\'[]\')                   ', { skip: false }, (check) => {
             return check(Array.isArray(parse('[]'))).mustBe(true);
         });
-        test('parse(\'[\n]\')                 ', { skip: false }, (check) => {
+        test('parse(\'[\\n]\')                ', { skip: false }, (check) => {
             return check(Array.isArray(parse('[\n]'))).mustBe(true);
         });
         test('parse(\'["abc"]\')              ', { skip: false }, (check) => {
@@ -214,7 +215,7 @@ importModules(["data-context"], function (DC) {
             check(Object.keys(data).length).mustBe(0);
             return true;
         });
-        test('parse(\'{\n}\')                 ', { skip: false }, (check) => {
+        test('parse(\'{\\n}\')                ', { skip: false }, (check) => {
             var data = parse('{\n}')?.valueOf();
             check(data).mustNotBe(null);
             check(typeof data).mustBe("object");
@@ -294,50 +295,50 @@ importModules(["data-context"], function (DC) {
             return check(stringify([{ nr: 1 }])).mustBe('[{"nr":1}]');
         });
 
-        test('stringify(DC(undefined))      ', { skip: false }, (check) => {
+        test('stringify(DC(undefined))        ', { skip: false }, (check) => {
             return check(stringify(DC(undefined))).mustBe(undefined);
         });
-        test('stringify(DC(null))           ', { skip: false }, (check) => {
+        test('stringify(DC(null))             ', { skip: false }, (check) => {
             return check(stringify(DC(null))).mustBe('null');
         });
-        test('stringify(DC(true))           ', { skip: false }, (check) => {
+        test('stringify(DC(true))             ', { skip: false }, (check) => {
             return check(stringify(DC(true))).mustBe('true');
         });
-        test('stringify(DC(false))          ', { skip: false }, (check) => {
+        test('stringify(DC(false))            ', { skip: false }, (check) => {
             return check(stringify(DC(false))).mustBe('false');
         });
-        test('stringify(DC(0))              ', { skip: false }, (check) => {
+        test('stringify(DC(0))                ', { skip: false }, (check) => {
             return check(stringify(DC(0))).mustBe('0');
         });
-        test('stringify(DC(-0))             ', { skip: false }, (check) => {
+        test('stringify(DC(-0))               ', { skip: false }, (check) => {
             return check(stringify(DC(-0))).mustBe('0');
         });
-        test('stringify(DC(0.123))          ', { skip: false }, (check) => {
+        test('stringify(DC(0.123))            ', { skip: false }, (check) => {
             return check(stringify(DC(0.123))).mustBe('0.123');
         });
-        test('stringify(DC(-0.123))         ', { skip: false }, (check) => {
+        test('stringify(DC(-0.123))           ', { skip: false }, (check) => {
             return check(stringify(DC(-0.123))).mustBe('-0.123');
         });
-        test('stringify(DC(0.0000123))      ', { skip: false }, (check) => {
+        test('stringify(DC(0.0000123))        ', { skip: false }, (check) => {
             return check(stringify(DC(0.0000123))).mustBe('0.0000123');
         });
-        test('stringify(DC(""))             ', { skip: false }, (check) => {
+        test('stringify(DC(""))               ', { skip: false }, (check) => {
             return check(stringify(DC(""))).mustBe('""');
         });
-        test('stringify(DC("abc"))          ', { skip: false }, (check) => {
+        test('stringify(DC("abc"))            ', { skip: false }, (check) => {
             return check(stringify(DC("abc"))).mustBe('"abc"');
         });
-        test('stringify(DC([]))             ', { skip: false }, (check) => {
+        test('stringify(DC([]))               ', { skip: false }, (check) => {
             return check(stringify(DC([]))).mustBe('[]');
         });
-        test('stringify(DC({}))             ', { skip: false }, (check) => {
+        test('stringify(DC({}))               ', { skip: false }, (check) => {
             return check(stringify(DC({}))).mustBe('{}');
         });
-        test('stringify(DC([{ nr: 1 }]))    ', { skip: false }, (check) => {
+        test('stringify(DC([{ nr: 1 }]))      ', { skip: false }, (check) => {
             return check(stringify(DC([{ nr: 1 }]))).mustBe('[{"nr":1}]');
         });
 
-        test('stringify(DC({n:1}),replacer) ', { skip: false }, (check) => {
+        test('stringify(DC({n:1}),replacer)   ', { skip: false }, (check) => {
             var keys = [], data = stringify(DC({ n: 1 }), function (k, v) {
                 check(typeof this).mustBe("object");
                 check(typeof k).mustBe("string");
@@ -349,10 +350,10 @@ importModules(["data-context"], function (DC) {
                 .mustBe(",n")
                 .done();
         });
-        test('stringify({s:"a",n:1},["n"])  ', { skip: false }, (check) => {
+        test('stringify({s:"a",n:1},["n"])    ', { skip: false }, (check) => {
             check(stringify(DC({ n: 1 }), ["n"])).mustBe('{"n":1}').done();
         });
-        test('stringify({n:1,o:{toJSON:...}})', { skip: false }, (check) => {
+        test('stringify({n:1,o:{toJSON:...}}) ', { skip: false }, (check) => {
             var obj = {
                 n: 1,
                 o: {
@@ -424,7 +425,7 @@ importModules(["data-context"], function (DC) {
         ]
     }
 }`);
-            check(stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe('{}');
+            check(stringify(obj, null, 0, { modifiedData: true, setUnmodified: true })).mustBe(undefined);
             return true;
         });
         test('overwriting data  minify        ', { skip: false }, (check) => {
@@ -434,7 +435,7 @@ importModules(["data-context"], function (DC) {
             var obj = parse(json, dc);
             var result = stringify(obj, null, "", { modifiedData: true, setUnmodified: true });
             check(result).mustBe('{"test":{"arr":[0:123,1:"abc"]}}');
-            check(stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe('');
+            check(stringify(obj, null, "", { modifiedData: true, setUnmodified: true })).mustBe(undefined);
             return true;
         });
         test('overwriting array delete dc     ', { skip: false }, (check) => {
