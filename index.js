@@ -676,7 +676,11 @@
 
                     if (!def._isDataContext) { def = createDataContext(def); }
                     if (val?._events) { def._events = val._events; }
-                    if (val?._propertyName && val._parent) { val._parent[val._propertyName] = def; }
+                    if (val?._propertyName && val._parent) {
+
+                        def._parent = val._parent;
+                        def._propertyName = val._propertyName;
+                    }
 
                     it.next();
                     it.next();
@@ -954,6 +958,20 @@
                             else {
 
                                 obj[k] = v;
+
+                                if (!v?._isDataContext && obj !== val && obj[k] === val?.[k]
+                                    || v?._isDataContext && !v._modified.length) {
+
+                                    if (obj?._isDataContext) {
+
+                                        obj._modified.splice(obj._modified.indexOf(k), 1);
+                                    }
+
+                                    if (v?._isDataContext) {
+
+                                        v._isModified = false;
+                                    }
+                                }
                             }
 
                             if (typeof obj[k] === 'object') {
@@ -1082,6 +1100,21 @@
                         else {
 
                             arr.push(v);
+                        }
+
+                        if (!v?._isDataContext && arr !== val
+                            && arr[typeof index === "number" && index || i] === val?.[typeof index === "number" && index || i]
+                            || v?._isDataContext && !v._modified.length) {
+
+                            if (arr?._isDataContext) {
+
+                                arr._modified.splice(arr._modified.indexOf(typeof index === "number" && index || i), 1);
+                            }
+
+                            if (v?._isDataContext) {
+
+                                v._isModified = false;
+                            }
                         }
 
                         if (typeof arr[typeof index === "number" && index || i] === 'object') {
@@ -1725,17 +1758,17 @@
                 if (!data) { data = createDataContext({}); }
                 if (!data._isDataContext) { data = createDataContext(data); }
 
-                fs.watchFile(filePath, (curr, prev) => { readFile(); });
+                fs.watchFile(filePath, (curr, prev) => { readFileSync(); });
 
                 data.on('-change', (event) => {
 
-                    writeFile();
+                    writeFileSync();
 
                     // I am alive.
                     return true;
                 });
 
-                if (isInitData) { Promise.resolve().then(writeFile); }
+                if (isInitData) { Promise.resolve().then(writeFileSync); }
                 else { readFileSync(); }
 
                 return data;
@@ -1756,7 +1789,7 @@
                 }
                 function readFileSync() {
 
-                    if (!enableFileReadWrite) { return; }
+                    if (!enableFileReadWrite || !fs.existsSync(filePath)) { return; }
 
                     var str = fs.readFileSync(
                         filePath,
@@ -1764,34 +1797,6 @@
                     );
 
                     loadData(str);
-                }
-                function readFile() {
-
-                    if (!enableFileReadWrite) { return; }
-
-                    fs.access(filePath, fs.constants.R_OK, (err) => {
-
-                        if (err) { return; }
-
-                        wait(read);
-                    });
-
-                    function read() {
-
-                        isFileProcessing = true;
-
-                        fs.readFile(
-                            filePath,
-                            { encoding: 'utf8', flag: 'r' },
-                            function (err, str) {
-
-                                if (err) { throw err; }
-
-                                loadData(str);
-
-                                isFileProcessing = false;
-                            });
-                    }
                 }
                 function loadData(str) {
 
@@ -1820,7 +1825,7 @@
                         }
                     }
                 }
-                function writeFile() {
+                function writeFileSync() {
 
                     if (!enableFileReadWrite) { return; }
 
@@ -1843,23 +1848,15 @@
 
                         isInitData = false;
 
-                        fs.writeFile(
-                            filePath,
-                            strJson,
-                            { encoding: 'utf8', flag: 'w', flush: true },
-                            (err) => {
+                        fs.writeFileSync(filePath, strJson, { encoding: 'utf8', flag: 'w', flush: true });
 
-                                if (err) throw err;
+                        //data.resetChanges();
+                        isFileProcessing = false;
 
-                                //data.resetChanges();
-                                isFileProcessing = false;
+                        if (onDataChange) {
 
-                                if (onDataChange) {
-
-                                    setTimeout(onDataChange, 0, { strChanges, strJson, datacontext: data });
-                                }
-                            }
-                        );
+                            setTimeout(onDataChange, 0, { strChanges, strJson, datacontext: data });
+                        }
                     }
                 }
                 function wait(cb) {
