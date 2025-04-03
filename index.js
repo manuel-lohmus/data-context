@@ -1,4 +1,4 @@
-﻿
+
 /**  Copyright (c) 2024, Manuel Lõhmus (MIT License). */
 
 "use strict";
@@ -360,7 +360,7 @@
                     }
                 }
 
-                if (removeUnusedKeys && _typeof(target) === 'object') {
+                if (removeUnusedKeys && (_typeof(target) === 'object' || _typeof(target) === 'array')) {
 
                     Object.keys(target).forEach(function (k) {
 
