@@ -1,4 +1,4 @@
-﻿/**  Copyright (c) 2024, Manuel Lõhmus (MIT). */
+/**  Copyright (c) Manuel Lõhmus (MIT). */
 
 "use strict";
 
@@ -529,7 +529,7 @@ importModules(["data-context"], function (DC) {
 
 /**
  * Test runner. Function to run unit tests in the console.
- * @author Manuel Lõhmus 2024 (MIT License)
+ * @author Manuel Lõhmus (MIT License)
  * @version 1.1.5
  * [2024-12-29] adde    d functionality to select tests by ID in the command line arguments (e.g. --testIDs=1 2 3)
  * @example `npm test '--'` or `node index.test.js`

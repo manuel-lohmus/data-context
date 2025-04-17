@@ -1,4 +1,4 @@
-﻿
+
 declare module 'data-context' {
 
     /** Creates a new data context. */
@@ -63,12 +63,6 @@ declare module 'data-context' {
 
         /** Set unmodified. */
         setUnmodified: boolean;
-
-        /** Write stream. */
-        writeStream: WriteStream;
-
-        /** Callback. */
-        callback(strJSON: string): void;
 
         /** Add the BOM to the beginning of the string. */
         includeBOM: boolean;

@@ -348,7 +348,6 @@ Create a data context from the data.
 - `ignoreMetadata` {boolean} - Global flag to ignore metadata and comments. Default is false.
 - `createDataContext` {(data: any, propertyName?: string, parent?: [DataContext](#datacontext)) => [DataContext](#datacontext)} - Create a data context from the data.
 - `parse` {(str: string, reviver?: [Reviver](#reviver)) => [DataContext](#datacontext)} - Parse JSON string to the data context.
-- `parsePromise` {(str: string, reviver?: [Reviver](#reviver)) => Promise<[DataContext](#datacontext)>} - Parse JSON string to the data context asynchronously. Returns a promise.
 - `stringify` {(data: any, replacer?: Replacer, space?: number) => string} - Stringify the data to JSON string.
 
 ### *DataContext*
