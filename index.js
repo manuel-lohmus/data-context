@@ -1,4 +1,3 @@
-
 /**  Copyright (c) Manuel Lõhmus (MIT License). */
 
 "use strict";
@@ -211,7 +210,7 @@
                                 delete emitToParent.timeout;
 
                                 _this.emit("-change", { eventName: "-change", target: _this });
-                            }, 0, this);
+                            }, 10, this);
                         }
 
                         if ((eventName === '-' || eventName === '-change') &&
@@ -469,10 +468,10 @@
                     }
 
                     target.emitToParent("-", { eventName, target, propertyPath: [property], oldValue, newValue });
+                    target.emit(property, { eventName, target, propertyPath: [property], oldValue, newValue });
 
                     setModified(target, property);
 
-                    target.emit(property, { eventName, target, propertyPath: [property], oldValue, newValue });
                     target.emitToParent("-change", { eventName: "-change", target });
 
                     return ret;
@@ -674,12 +673,21 @@
 
                 if (it.current === '\r' && it.following === '\r') {
 
-                    if (!def._isDataContext) { def = createDataContext(def); }
+                    if (!def._isDataContext) {
+
+                        def = createDataContext(def);
+                        def._isModified = true;
+                    }
+                    if (_typeof(val) === 'array') {
+
+                        val.length = 0;
+                    }
                     if (val?._events) { def._events = val._events; }
                     if (val?._propertyName && val._parent) {
 
                         def._parent = val._parent;
                         def._propertyName = val._propertyName;
+                        val._parent[val._propertyName] = def;
                     }
 
                     it.next();
@@ -960,7 +968,7 @@
                                 obj[k] = v;
 
                                 if (!v?._isDataContext && obj !== val && obj[k] === val?.[k]
-                                    || v?._isDataContext && !v._modified.length) {
+                                    || v?._isDataContext && !v.isChanged) {
 
                                     if (obj?._isDataContext) {
 
@@ -1402,6 +1410,8 @@
                             ? Object.values(value._modified).sort()
                             : Object.keys(value);
 
+                        if (type === "array") { keys = keys.filter(function (k) { return Number.isInteger(Number(k)) }); }
+
                         // write emty object
                         if (!keys.length) {
 
@@ -1657,12 +1667,18 @@
 
                 var isInitData = !fs.existsSync(filePath),
                     isFileProcessing = false,
-                    writeTimeout;
+                    writeTimeout,
+                    lastModifiedTime = Date.now();
 
                 if (!data) { data = createDataContext({}); }
                 if (!data._isDataContext) { data = createDataContext(data); }
 
-                fs.watchFile(filePath, (curr, prev) => { readFileSync(); });
+                fs.watchFile(filePath, (curr, prev) => {
+
+                    if (lastModifiedTime > curr.mtimeMs) { return; }
+                    
+                    readFileSync();
+                });
 
                 data.on('-change', (event) => {
 
@@ -1738,7 +1754,7 @@
                     writeTimeout = setTimeout(function () {
 
                         wait(write);
-                    }, 500);
+                    }, 5000);
 
 
                     function write() {
@@ -1755,6 +1771,7 @@
                         fs.writeFileSync(filePath, strJson, { encoding: 'utf8', flag: 'w', flush: true });
 
                         //data.resetChanges();
+                        lastModifiedTime = Date.now();
                         isFileProcessing = false;
 
                         if (onDataChange) {
