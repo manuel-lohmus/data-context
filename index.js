@@ -436,7 +436,7 @@
                 || target[property] === undefined) {
 
                 var oldValue = target[property],
-                    newValue = newValue && newValue._isDataContext ? newValue : createDataContext(newValue, property);
+                    newValue = newValue && newValue._isDataContext ? newValue : createDataContext(newValue);
 
 
                 if (oldValue !== newValue) {
@@ -448,17 +448,11 @@
                     var isDC = newValue?._isDataContext;
                     var isNew = oldValue === undefined;
 
-                    if (isDC) {
-                        newValue._isModified = true;
-                        newValue._parent = proxy;
-                        newValue._propertyName = property;
-                    }
-
                     if (isNew) {
                         //console.log("'-new' set: oldValue is undefined", property, event);
                         eventName = "new";
                     }
-                    else if (isDC && typeof newValue._propertyName === 'string' && newValue._propertyName !== property) {
+                    else if (isDC && newValue._propertyName !== null && newValue._propertyName !== property) {
                         //console.log("'-reposition' set: newValue propertyName is change ", newValue + "", ">", property, event);
                         eventName = "reposition";
                     }
@@ -469,6 +463,12 @@
 
                     target.emitToParent("-", { eventName, target, propertyPath: [property], oldValue, newValue });
                     target.emit(property, { eventName, target, propertyPath: [property], oldValue, newValue });
+
+                    if (isDC) {
+                        newValue._isModified = true;
+                        newValue._parent = proxy;
+                        newValue._propertyName = property;
+                    }
 
                     setModified(target, property);
 
