@@ -6,8 +6,8 @@
 
     exportModule("data-context", function factory() {
 
-        //var isDebug = true;
-        var ignoreMetadata = false;
+        var isDebug = this.document && Array.from(document.scripts).find(function (s) { return s.src.includes('data-context-binding'); })?.attributes.debug || false,
+            ignoreMetadata = false;
 
         /**
          * Create a new proxy object with the same structure as the original object. 
@@ -953,20 +953,6 @@
                             else {
 
                                 obj[k] = v;
-
-                                if (!v?._isDataContext && obj !== val && obj[k] === val?.[k]
-                                    || v?._isDataContext && !v.isChanged) {
-
-                                    if (obj?._isDataContext) {
-
-                                        obj._modified.splice(obj._modified.indexOf(k), 1);
-                                    }
-
-                                    if (v?._isDataContext) {
-
-                                        v._isModified = false;
-                                    }
-                                }
                             }
 
                             if (typeof obj[k] === 'object') {
@@ -1072,11 +1058,7 @@
 
                         if (isOverwriting && index === undefined) {
 
-                            if (typeof isDebug === 'boolean' && isDebug) {
-
-                                throw "Overwriting data -> array index must be.";
-                            }
-                            console.warn("Overwriting data -> array index must be.");
+                            pWarn("Overwriting data -> array index must be.");
                             index = i;
                         }
 
@@ -1115,21 +1097,6 @@
                         else {
 
                             arr.push(v);
-                        }
-
-                        if (!v?._isDataContext && arr !== val
-                            && arr[typeof index === "number" && index || i] === val?.[typeof index === "number" && index || i]
-                            || v?._isDataContext && !v._modified.length) {
-
-                            if (arr?._isDataContext) {
-
-                                arr._modified.splice(arr._modified.indexOf(typeof index === "number" && index || i), 1);
-                            }
-
-                            if (v?._isDataContext) {
-
-                                v._isModified = false;
-                            }
                         }
 
                         if (typeof arr[typeof index === "number" && index || i] === 'object') {
@@ -1359,7 +1326,7 @@
                 }
 
                 else { _getValue(); }
-                
+
                 return;
 
 
@@ -1689,7 +1656,7 @@
                 fs.watchFile(filePath, (curr, prev) => {
 
                     if (lastModifiedTime > curr.mtimeMs) { return; }
-                    
+
                     readFileSync();
                 });
 
@@ -1754,7 +1721,7 @@
 
                         if (typeof isDebug === 'boolean' && isDebug) {
 
-                            console.error(err);
+                            pError(err);
                         }
                     }
                 }
@@ -1829,6 +1796,11 @@
                 set: function (val) { ignoreMetadata = Boolean(val); }
             }
         });
+
+        // Debugging
+        function pDebug(...args) { if (isDebug) { console.log(`[ DEBUG ] `, ...args); } }
+        function pWarn(...args) { if (isDebug) { console.warn(`[ WARN ] `, ...args); } }
+        function pError(...args) { if (isDebug) { console.error(`[ ERROR ] `, ...args); } }
 
         return createDataContext;
     });
