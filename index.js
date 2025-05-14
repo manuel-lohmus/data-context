@@ -386,19 +386,6 @@
 
                 var ret = Reflect.deleteProperty(target, property);
 
-                //if (oldValue === undefined) {
-
-                //    //console.log("? del: oldValue is undefined", property, { target, propertyPath: [property], oldValue, newValue });
-                //}
-                ////else if (oldValue._parent === null) {
-
-                ////    //console.log("'-delete' del: oldValue._parent is null", property, { target, propertyPath: [property], oldValue, newValue });
-                ////}
-                //else {
-
-                //    //console.log("'-delete' del: oldValue is ", property, event);
-                //}
-
                 target.emitToParent("-", { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
 
                 if (Array.isArray(target)) {
@@ -421,7 +408,7 @@
                     }
                 }
 
-                target.emitToParent(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
+                target.emit(property, { eventName: "delete", target, propertyPath: [property], oldValue, newValue });
                 target.emitToParent("-change", { eventName: "-change", target });
 
                 return ret;
