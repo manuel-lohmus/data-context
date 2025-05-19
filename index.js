@@ -1621,6 +1621,7 @@
                 filePath = '',
                 data = null,
                 removeUnusedKeys = true,
+                allowFileReadWrite = true,
                 onDataChange = null,
                 onFileChange = null
             } = {}) {
@@ -1634,6 +1635,7 @@
 
                 var isInitData = !fs.existsSync(filePath),
                     isFileProcessing = false,
+                    isWrited = false,
                     writeTimeout,
                     lastModifiedTime = Date.now();
 
@@ -1642,6 +1644,7 @@
 
                 fs.watchFile(filePath, (curr, prev) => {
 
+                    if (isWrited) { isWrited = false; return; }
                     if (lastModifiedTime > curr.mtimeMs) { return; }
 
                     readFileSync();
@@ -1650,6 +1653,7 @@
                 data.on('-change', (event) => {
 
                     writeFileSync();
+                    isWrited = true;
 
                     // I am alive.
                     return true;
@@ -1657,6 +1661,13 @@
 
                 if (isInitData) { Promise.resolve().then(writeFileSync); }
                 else { readFileSync(); }
+
+                Object.defineProperty(data, '_allowFileReadWrite', {
+                    get: () => allowFileReadWrite,
+                    set: (val) => { allowFileReadWrite = Boolean(val); },
+                    enumerable: false,
+                    configurable: false
+                });
 
                 return data;
 
@@ -1677,7 +1688,7 @@
                 function readFileSync() {
 
                     if (!enableFileReadWrite || !fs.existsSync(filePath)) { return; }
-
+                    
                     var str = fs.readFileSync(
                         filePath,
                         { encoding: 'utf8' }
@@ -1714,7 +1725,7 @@
                 }
                 function writeFileSync() {
 
-                    if (!enableFileReadWrite) { return; }
+                    if (!enableFileReadWrite || !allowFileReadWrite) { return; }
 
                     clearTimeout(writeTimeout);
 
