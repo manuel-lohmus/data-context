@@ -1662,12 +1662,15 @@
                 if (isInitData) { Promise.resolve().then(writeFileSync); }
                 else { readFileSync(); }
 
-                Object.defineProperty(data, '_allowFileReadWrite', {
-                    get: () => allowFileReadWrite,
-                    set: (val) => { allowFileReadWrite = Boolean(val); },
-                    enumerable: false,
-                    configurable: false
-                });
+                if (!data._allowFileReadWrite) {
+
+                    Object.defineProperty(data, '_allowFileReadWrite', {
+                        get: () => allowFileReadWrite,
+                        set: (val) => { allowFileReadWrite = Boolean(val); },
+                        enumerable: false,
+                        configurable: false
+                    });
+                }
 
                 return data;
 
