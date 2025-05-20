@@ -1636,16 +1636,14 @@
                 var isInitData = !fs.existsSync(filePath),
                     isFileProcessing = false,
                     isWrited = false,
-                    writeTimeout,
-                    lastModifiedTime = Date.now();
+                    writeTimeout;
 
                 if (!data) { data = createDataContext({}); }
                 if (!data._isDataContext) { data = createDataContext(data); }
 
-                fs.watchFile(filePath, (curr, prev) => {
+                fs.watchFile(filePath, (/*curr, prev*/) => {
 
                     if (isWrited) { isWrited = false; return; }
-                    if (lastModifiedTime > curr.mtimeMs) { return; }
 
                     readFileSync();
                 });
@@ -1653,7 +1651,6 @@
                 data.on('-change', (event) => {
 
                     writeFileSync();
-                    isWrited = true;
 
                     // I am alive.
                     return true;
@@ -1748,11 +1745,10 @@
                             strJson = createDataContext.stringify(data, null, 2);
 
                         isInitData = false;
+                        isWrited = true;
 
                         fs.writeFileSync(filePath, strJson, { encoding: 'utf8', flag: 'w', flush: true });
 
-                        //data.resetChanges();
-                        lastModifiedTime = Date.now();
                         isFileProcessing = false;
 
                         if (onDataChange) {
