@@ -1,4 +1,13 @@
+<div class="row w-100">
+<div class="col-12 text-center">
 
+# data-context  
+
+Watch data changes in the browser and node.js<br>
+This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
+
+</div>
+</div> 
 <div class="row w-100">
 <div class="col-lg-3 d-lg-inline">
 <div class="sticky-top overflow-auto vh-lg-100">
@@ -28,19 +37,17 @@
 <div class="col-lg-9 mt-2">
 <div class="ps-4 markdown-body" data-bs-spy="scroll" data-bs-target="#list-headers" data-bs-offset="0" tabindex="0">
 
-# data-context  
-
-Watch data changes in the browser and node.js<br>
-This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
-<!--[![npm-version](https://badgen.net/npm/v/data-context)](https://www.npmjs.com/package/data-context)-->
 
 ## Introduction
 
-It is a simple and easy-to-use library that can be used in the browser or in node.js.<br>
-You can create a context from the data, then listen for change events and stringify changes.<br>
-Included event-emitter functions. Automatically detects changes in the data and emits events.<br>
-Designed for module 'data-context-binding' for binding data to the DOM and for module 'fs-broker' for working with files.<br>
-Using a single-page application (SPA) with the ['data-context-binding'](https://www.npmjs.com/package/data-context-binding) module gives very good results.<br>
+It is a simple and easy-to-use library that can be used in the browser or in node.js.
+You can create a context from the data, then listen for change events and stringify changes.
+Included event-emitter functions. Automatically detects changes in the data and emits events.
+Designed for module 'data-context-binding' for binding data to the DOM and for module 'fs-broker' for working with files.
+Using a single-page application (SPA) with the ['data-context-binding'](https://www.npmjs.com/package/data-context-binding) module gives very good results.
+This module is part of the ['conextra'](https://www.npmjs.com/package/conextra) framework,
+which is a simple and easy-to-use single-page application (SPA) framework.
+You have to try it! A different solution than MVC (model–view–controller).
 
 > Please note, this version is not backward compatible with version 1.x<br>
 > Please note that JSON string is not 100% compatible.<br>
