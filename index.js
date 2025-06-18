@@ -6,8 +6,9 @@
 
     exportModule("data-context", function factory() {
 
-        var isDebug = this.document && Array.from(document.scripts).find(function (s) { return s.src.includes('data-context-binding'); })?.attributes.debug || false,
-            ignoreMetadata = false;
+        var script = this.document && Array.from(document.scripts).find(function (s) { return s.src.includes('data-context'); }),
+            isDebug = script?.attributes.debug || false,
+            ignoreMetadata = script?.attributes.ignoreMetadata || false;
 
         /**
          * Create a new proxy object with the same structure as the original object. 
