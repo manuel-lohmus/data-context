@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation (README)
+    url: https://github.com/manuel-lohmus/data-context#readme
+    about: Read the usage guide, examples, and API overview.
+  - name: npm package
+    url: https://www.npmjs.com/package/data-context
+    about: Install instructions and version history.

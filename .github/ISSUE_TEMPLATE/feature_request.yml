@@ -1,0 +1,56 @@
+name: "Feature request"
+description: "Suggest an idea or improvement for data-context"
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your suggestion! Please describe the problem this feature would solve and your proposed solution.
+  - type: input
+    id: version
+    attributes:
+      label: data-context version
+      placeholder: "e.g. 2.0.0"
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What is the user problem or use case?
+      placeholder: "When I try to ..., it is hard to ..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe your preferred solution.
+      placeholder: "Add an option to ..."
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: API design (if applicable)
+      description: Describe the API, including TypeScript signatures if possible.
+      render: typescript
+      placeholder: |
+        interface Options { /* ... */ }
+        createDataContext.stringify(value, null, 2, { /* ... */ })
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Breaking change?
+      options:
+        - label: This change would break existing users
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: "Describe any alternative solutions or features you’ve considered."
+  - type: textarea
+    id: extras
+    attributes:
+      label: Additional context
+      placeholder: "Links, references, or related issues."

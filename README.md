@@ -14,7 +14,7 @@ Watch data changes in the browser and node.js
  - [🧪 Testing](#-testing)
  - [🚀 Usage](#-usage)
  - [📖 API Reference](#-api-reference)
- - [📜 License](#-license)
+ - [📜 License - MIT](#-license)
 
  <p align="right"><a href="#data-context">Back to top ↑</a></p>
 
