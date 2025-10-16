@@ -1,0 +1,71 @@
+/* Configuration settings for application. */
+{
+  /* Set to true to use production settings, */
+  /* false for development settings. Default is true. */
+  "isProduction": true,
+  /* Settings used in production mode. */
+  /* These settings are saved to "config-sets.json" file. */
+  "production": {
+    "port": 8000,
+    "parallelism": 1,
+    "tiny-https-server": {
+      "isDebug": false,
+      "host": "0.0.0.0",
+      "port": 8000,
+      "exclusive": false,
+      "logDir": "./log/tiny-https-server",
+      "directory_index": "index.html",
+      "primary_domain": {
+        "document_root": "./",
+        "service_worker_version": "0",
+        "service_worker_version_update": true,
+        "is_new_service_worker_reload_browser": false,
+        "service_worker_disabled": false,
+        "precache_urls": null,
+        "headers": {
+          "default": {
+            "server": "tiny-https-server"
+          }
+        },
+        "sitemap_update": true
+      },
+      "subdomains": {},
+      "cache_control": {
+        "fileTypes": {
+          "webp": "max-age=2592000",
+          "bmp": "max-age=2592000",
+          "jpeg": "max-age=2592000",
+          "jpg": "max-age=2592000",
+          "png": "max-age=2592000",
+          "svg": "max-age=2592000",
+          "pdf": "max-age=2592000",
+          "woff2": "max-age=2592000",
+          "woff": "max-age=2592000",
+          "image/svg+xml": "max-age=2592000",
+          "html": "max-age=86400",
+          "css": "max-age=86400",
+          "js": "max-age=86400"
+        }
+      },
+      "pathToBlacklistFile": "./log/tiny-https-server/blacklist.json",
+      "bad_path_validation_regex_patterns": [
+        ".php$|.asmx$"
+      ],
+      "contact_email": "default@laptop-l6kf75di",
+      "maxConnections": 100,
+      "maxRequestsPerSocket": 100,
+      "pathToPrivkey": ,
+      "pathToCert": 
+    },
+    "web-cluster": {
+      "isDebug": false,
+      "parallelism": 1,
+      "httpToHttpsRedirect": true
+    }
+  },
+  /* Settings used in development mode. */
+  /* These settings are not saved to file and are created from production settings. */
+  /* You can override these settings using command line arguments. */
+  /* Set only the settings you want to change. */
+  "development": {}
+}

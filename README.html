@@ -1,472 +1,1462 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
-<head>
-    <title>data-context</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" />
-    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" />
-    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <style>
-        #list-headers ul {
-            list-style: none;
-            padding-left: .5em;
-        }
-        #list-headers > ul {
-            padding: 0;
-        }
-        #list-headers h1, h2, h3, h4, h5 {
-            white-space: nowrap;
-        }
-        .markdown-body {
-            padding-left: 2em;
-        }
-        @media (min-width: 992px) {
-            .vh-lg-100{
-                height: 100vh !important;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="row w-100">
-<div class="col-12 text-center">
-<h1 id="data-context">data-context</h1>
-<p>Watch data changes in the browser and node.js<br>
-This manual is also available in <a href="https://manuel-lohmus.github.io/data-context/README.html">HTML5</a>.<br></p>
-</div>
-</div> 
-<div class="row w-100">
-<div class="col-lg-3 d-lg-inline">
-<div class="sticky-top overflow-auto vh-lg-100">
-<div id="list-headers" class="list-group mt-2 ms-lg-2 ms-4">
-<h4 id="table-of-contents">Table of contents</h4>
-<ul>
-<li><a href="#introduction"><strong>Introduction</strong></a></li>
-<li><a href="#features"><strong>Features</strong></a></li>
-<li><a href="#installation"><strong>Installation</strong></a></li>
-<li><a href="#testing"><strong>Testing</strong></a></li>
-<li><a href="#usage"><strong>Usage</strong></a>
-<ul>
-<li><a href="#nodejs-example">nodejs example</a></li>
-<li><a href="#browser-example">browser example</a></li>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>README</title>
+        <style>:root
+{
+    --markdown-font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
+    --markdown-font-size: 14px;
+    --markdown-line-height: 1.6;
+    --vscode-font-family:"Segoe WPC", "Segoe UI", sans-serif;
+    --vscode-font-weight:normal;
+    --vscode-font-size:13px;
+    --vscode-editor-font-family:Consolas, "Courier New", monospace;
+    --vscode-editor-font-weight:normal;
+    --vscode-editor-font-size:14px;
+    --vscode-foreground:#616161;
+    --vscode-errorForeground:#a1260d;
+    --vscode-descriptionForeground:#717171;
+    --vscode-icon-foreground:#424242;
+    --vscode-focusBorder:#0090f1;
+    --vscode-textSeparator-foreground:rgba(0, 0, 0, 0.18);
+    --vscode-textLink-foreground:#006ab1;
+    --vscode-textLink-activeForeground:#006ab1;
+    --vscode-textPreformat-foreground:#a31515;
+    --vscode-textBlockQuote-background:rgba(127, 127, 127, 0.1);
+    --vscode-textBlockQuote-border:rgba(0, 122, 204, 0.5);
+    --vscode-textCodeBlock-background:rgba(220, 220, 220, 0.4);
+    --vscode-widget-shadow:#a8a8a8;
+    --vscode-input-background:#ffffff;
+    --vscode-input-foreground:#616161;
+    --vscode-inputOption-activeBorder:rgba(0, 122, 204, 0);
+    --vscode-inputOption-activeBackground:rgba(0, 144, 241, 0.2);
+    --vscode-inputOption-activeForeground:#000000;
+    --vscode-input-placeholderForeground:#767676;
+    --vscode-inputValidation-infoBackground:#d6ecf2;
+    --vscode-inputValidation-infoBorder:#007acc;
+    --vscode-inputValidation-warningBackground:#f6f5d2;
+    --vscode-inputValidation-warningBorder:#b89500;
+    --vscode-inputValidation-errorBackground:#f2dede;
+    --vscode-inputValidation-errorBorder:#be1100;
+    --vscode-dropdown-background:#ffffff;
+    --vscode-dropdown-border:#cecece;
+    --vscode-checkbox-background:#ffffff;
+    --vscode-checkbox-border:#cecece;
+    --vscode-button-foreground:#ffffff;
+    --vscode-button-background:#007acc;
+    --vscode-button-hoverBackground:#0062a3;
+    --vscode-button-secondaryForeground:#ffffff;
+    --vscode-button-secondaryBackground:#5f6a79;
+    --vscode-button-secondaryHoverBackground:#4c5561;
+    --vscode-badge-background:#c4c4c4;
+    --vscode-badge-foreground:#333333;
+    --vscode-scrollbar-shadow:#dddddd;
+    --vscode-scrollbarSlider-background:rgba(100, 100, 100, 0.4);
+    --vscode-scrollbarSlider-hoverBackground:rgba(100, 100, 100, 0.7);
+    --vscode-scrollbarSlider-activeBackground:rgba(0, 0, 0, 0.6);
+    --vscode-progressBar-background:#0e70c0;
+    --vscode-editorError-foreground:#e51400;
+    --vscode-editorWarning-foreground:#e9a700;
+    --vscode-editorInfo-foreground:#75beff;
+    --vscode-editorHint-foreground:#6c6c6c;
+    --vscode-editor-background:#ffffff;
+    --vscode-editor-foreground:#000000;
+    --vscode-editorWidget-background:#f3f3f3;
+    --vscode-editorWidget-foreground:#616161;
+    --vscode-editorWidget-border:#c8c8c8;
+    --vscode-quickInput-background:#f3f3f3;
+    --vscode-quickInput-foreground:#616161;
+    --vscode-quickInputTitle-background:rgba(0, 0, 0, 0.06);
+    --vscode-pickerGroup-foreground:#0066bf;
+    --vscode-pickerGroup-border:#cccedb;
+    --vscode-editor-selectionBackground:#add6ff;
+    --vscode-editor-inactiveSelectionBackground:#e5ebf1;
+    --vscode-editor-selectionHighlightBackground:rgba(173, 214, 255, 0.5);
+    --vscode-editor-findMatchBackground:#a8ac94;
+    --vscode-editor-findMatchHighlightBackground:rgba(234, 92, 0, 0.33);
+    --vscode-editor-findRangeHighlightBackground:rgba(180, 180, 180, 0.3);
+    --vscode-searchEditor-findMatchBackground:rgba(234, 92, 0, 0.22);
+    --vscode-editor-hoverHighlightBackground:rgba(173, 214, 255, 0.15);
+    --vscode-editorHoverWidget-background:#f3f3f3;
+    --vscode-editorHoverWidget-foreground:#616161;
+    --vscode-editorHoverWidget-border:#c8c8c8;
+    --vscode-editorHoverWidget-statusBarBackground:#e7e7e7;
+    --vscode-editorLink-activeForeground:#0000ff;
+    --vscode-editorLightBulb-foreground:#ddb100;
+    --vscode-editorLightBulbAutoFix-foreground:#007acc;
+    --vscode-diffEditor-insertedTextBackground:rgba(155, 185, 85, 0.2);
+    --vscode-diffEditor-removedTextBackground:rgba(255, 0, 0, 0.2);
+    --vscode-diffEditor-diagonalFill:rgba(34, 34, 34, 0.2);
+    --vscode-list-focusBackground:#d6ebff;
+    --vscode-list-activeSelectionBackground:#0074e8;
+    --vscode-list-activeSelectionForeground:#ffffff;
+    --vscode-list-inactiveSelectionBackground:#e4e6f1;
+    --vscode-list-hoverBackground:#e8e8e8;
+    --vscode-list-dropBackground:#d6ebff;
+    --vscode-list-highlightForeground:#0066bf;
+    --vscode-list-invalidItemForeground:#b89500;
+    --vscode-list-errorForeground:#b01011;
+    --vscode-list-warningForeground:#855f00;
+    --vscode-listFilterWidget-background:#efc1ad;
+    --vscode-listFilterWidget-outline:rgba(0, 0, 0, 0);
+    --vscode-listFilterWidget-noMatchesOutline:#be1100;
+    --vscode-list-filterMatchBackground:rgba(234, 92, 0, 0.33);
+    --vscode-tree-indentGuidesStroke:#a9a9a9;
+    --vscode-list-deemphasizedForeground:#8e8e90;
+    --vscode-menu-foreground:#616161;
+    --vscode-menu-background:#ffffff;
+    --vscode-menu-selectionForeground:#ffffff;
+    --vscode-menu-selectionBackground:#0074e8;
+    --vscode-menu-separatorBackground:#888888;
+    --vscode-editor-snippetTabstopHighlightBackground:rgba(10, 50, 100, 0.2);
+    --vscode-editor-snippetFinalTabstopHighlightBorder:rgba(10, 50, 100, 0.5);
+    --vscode-breadcrumb-foreground:rgba(97, 97, 97, 0.8);
+    --vscode-breadcrumb-background:#ffffff;
+    --vscode-breadcrumb-focusForeground:#4e4e4e;
+    --vscode-breadcrumb-activeSelectionForeground:#4e4e4e;
+    --vscode-breadcrumbPicker-background:#f3f3f3;
+    --vscode-merge-currentHeaderBackground:rgba(64, 200, 174, 0.5);
+    --vscode-merge-currentContentBackground:rgba(64, 200, 174, 0.2);
+    --vscode-merge-incomingHeaderBackground:rgba(64, 166, 255, 0.5);
+    --vscode-merge-incomingContentBackground:rgba(64, 166, 255, 0.2);
+    --vscode-merge-commonHeaderBackground:rgba(96, 96, 96, 0.4);
+    --vscode-merge-commonContentBackground:rgba(96, 96, 96, 0.16);
+    --vscode-editorOverviewRuler-currentContentForeground:rgba(64, 200, 174, 0.5);
+    --vscode-editorOverviewRuler-incomingContentForeground:rgba(64, 166, 255, 0.5);
+    --vscode-editorOverviewRuler-commonContentForeground:rgba(96, 96, 96, 0.4);
+    --vscode-editorOverviewRuler-findMatchForeground:rgba(209, 134, 22, 0.49);
+    --vscode-editorOverviewRuler-selectionHighlightForeground:rgba(160, 160, 160, 0.8);
+    --vscode-minimap-findMatchHighlight:#d18616;
+    --vscode-minimap-selectionHighlight:#add6ff;
+    --vscode-minimap-errorHighlight:rgba(255, 18, 18, 0.7);
+    --vscode-minimap-warningHighlight:#e9a700;
+    --vscode-minimapSlider-background:rgba(100, 100, 100, 0.2);
+    --vscode-minimapSlider-hoverBackground:rgba(100, 100, 100, 0.35);
+    --vscode-minimapSlider-activeBackground:rgba(0, 0, 0, 0.3);
+    --vscode-problemsErrorIcon-foreground:#e51400;
+    --vscode-problemsWarningIcon-foreground:#e9a700;
+    --vscode-problemsInfoIcon-foreground:#75beff;
+    --vscode-editor-lineHighlightBorder:#eeeeee;
+    --vscode-editor-rangeHighlightBackground:rgba(253, 255, 0, 0.2);
+    --vscode-editor-symbolHighlightBackground:rgba(234, 92, 0, 0.33);
+    --vscode-editorCursor-foreground:#000000;
+    --vscode-editorWhitespace-foreground:rgba(51, 51, 51, 0.2);
+    --vscode-editorIndentGuide-background:#d3d3d3;
+    --vscode-editorIndentGuide-activeBackground:#939393;
+    --vscode-editorLineNumber-foreground:#237893;
+    --vscode-editorActiveLineNumber-foreground:#0b216f;
+    --vscode-editorLineNumber-activeForeground:#0b216f;
+    --vscode-editorRuler-foreground:#d3d3d3;
+    --vscode-editorCodeLens-foreground:#999999;
+    --vscode-editorBracketMatch-background:rgba(0, 100, 0, 0.1);
+    --vscode-editorBracketMatch-border:#b9b9b9;
+    --vscode-editorOverviewRuler-border:rgba(127, 127, 127, 0.3);
+    --vscode-editorGutter-background:#ffffff;
+    --vscode-editorUnnecessaryCode-opacity:rgba(0, 0, 0, 0.47);
+    --vscode-editorOverviewRuler-rangeHighlightForeground:rgba(0, 122, 204, 0.6);
+    --vscode-editorOverviewRuler-errorForeground:rgba(255, 18, 18, 0.7);
+    --vscode-editorOverviewRuler-warningForeground:#e9a700;
+    --vscode-editorOverviewRuler-infoForeground:#75beff;
+    --vscode-editorOverviewRuler-bracketMatchForeground:#a0a0a0;
+    --vscode-symbolIcon-arrayForeground:#616161;
+    --vscode-symbolIcon-booleanForeground:#616161;
+    --vscode-symbolIcon-classForeground:#d67e00;
+    --vscode-symbolIcon-colorForeground:#616161;
+    --vscode-symbolIcon-constantForeground:#616161;
+    --vscode-symbolIcon-constructorForeground:#652d90;
+    --vscode-symbolIcon-enumeratorForeground:#d67e00;
+    --vscode-symbolIcon-enumeratorMemberForeground:#007acc;
+    --vscode-symbolIcon-eventForeground:#d67e00;
+    --vscode-symbolIcon-fieldForeground:#007acc;
+    --vscode-symbolIcon-fileForeground:#616161;
+    --vscode-symbolIcon-folderForeground:#616161;
+    --vscode-symbolIcon-functionForeground:#652d90;
+    --vscode-symbolIcon-interfaceForeground:#007acc;
+    --vscode-symbolIcon-keyForeground:#616161;
+    --vscode-symbolIcon-keywordForeground:#616161;
+    --vscode-symbolIcon-methodForeground:#652d90;
+    --vscode-symbolIcon-moduleForeground:#616161;
+    --vscode-symbolIcon-namespaceForeground:#616161;
+    --vscode-symbolIcon-nullForeground:#616161;
+    --vscode-symbolIcon-numberForeground:#616161;
+    --vscode-symbolIcon-objectForeground:#616161;
+    --vscode-symbolIcon-operatorForeground:#616161;
+    --vscode-symbolIcon-packageForeground:#616161;
+    --vscode-symbolIcon-propertyForeground:#616161;
+    --vscode-symbolIcon-referenceForeground:#616161;
+    --vscode-symbolIcon-snippetForeground:#616161;
+    --vscode-symbolIcon-stringForeground:#616161;
+    --vscode-symbolIcon-structForeground:#616161;
+    --vscode-symbolIcon-textForeground:#616161;
+    --vscode-symbolIcon-typeParameterForeground:#616161;
+    --vscode-symbolIcon-unitForeground:#616161;
+    --vscode-symbolIcon-variableForeground:#007acc;
+    --vscode-editor-foldBackground:rgba(173, 214, 255, 0.3);
+    --vscode-editorGutter-foldingControlForeground:#424242;
+    --vscode-editor-onTypeRenameBackground:rgba(255, 0, 0, 0.3);
+    --vscode-editorSuggestWidget-background:#f3f3f3;
+    --vscode-editorSuggestWidget-border:#c8c8c8;
+    --vscode-editorSuggestWidget-foreground:#000000;
+    --vscode-editorSuggestWidget-selectedBackground:#d6ebff;
+    --vscode-editorSuggestWidget-highlightForeground:#0066bf;
+    --vscode-editor-wordHighlightBackground:rgba(87, 87, 87, 0.25);
+    --vscode-editor-wordHighlightStrongBackground:rgba(14, 99, 156, 0.25);
+    --vscode-editorOverviewRuler-wordHighlightForeground:rgba(160, 160, 160, 0.8);
+    --vscode-editorOverviewRuler-wordHighlightStrongForeground:rgba(192, 160, 192, 0.8);
+    --vscode-peekViewTitle-background:#ffffff;
+    --vscode-peekViewTitleLabel-foreground:#333333;
+    --vscode-peekViewTitleDescription-foreground:rgba(97, 97, 97, 0.9);
+    --vscode-peekView-border:#007acc;
+    --vscode-peekViewResult-background:#f3f3f3;
+    --vscode-peekViewResult-lineForeground:#646465;
+    --vscode-peekViewResult-fileForeground:#1e1e1e;
+    --vscode-peekViewResult-selectionBackground:rgba(51, 153, 255, 0.2);
+    --vscode-peekViewResult-selectionForeground:#6c6c6c;
+    --vscode-peekViewEditor-background:#f2f8fc;
+    --vscode-peekViewEditorGutter-background:#f2f8fc;
+    --vscode-peekViewResult-matchHighlightBackground:rgba(234, 92, 0, 0.3);
+    --vscode-peekViewEditor-matchHighlightBackground:rgba(245, 216, 2, 0.87);
+    --vscode-editorMarkerNavigationError-background:#e51400;
+    --vscode-editorMarkerNavigationWarning-background:#e9a700;
+    --vscode-editorMarkerNavigationInfo-background:#75beff;
+    --vscode-editorMarkerNavigation-background:#ffffff;
+    --vscode-tab-activeBackground:#ffffff;
+    --vscode-tab-unfocusedActiveBackground:#ffffff;
+    --vscode-tab-inactiveBackground:#ececec;
+    --vscode-tab-unfocusedInactiveBackground:#ececec;
+    --vscode-tab-activeForeground:#333333;
+    --vscode-tab-inactiveForeground:rgba(51, 51, 51, 0.7);
+    --vscode-tab-unfocusedActiveForeground:rgba(51, 51, 51, 0.7);
+    --vscode-tab-unfocusedInactiveForeground:rgba(51, 51, 51, 0.35);
+    --vscode-tab-activeModifiedBorder:#33aaee;
+    --vscode-tab-inactiveModifiedBorder:rgba(51, 170, 238, 0.5);
+    --vscode-tab-unfocusedActiveModifiedBorder:rgba(51, 170, 238, 0.7);
+    --vscode-tab-unfocusedInactiveModifiedBorder:rgba(51, 170, 238, 0.25);
+    --vscode-tab-border:#f3f3f3;
+    --vscode-editorPane-background:#ffffff;
+    --vscode-editorGroupHeader-tabsBackground:#f3f3f3;
+    --vscode-editorGroupHeader-noTabsBackground:#ffffff;
+    --vscode-editorGroup-border:#e7e7e7;
+    --vscode-editorGroup-dropBackground:rgba(38, 119, 203, 0.18);
+    --vscode-imagePreview-border:rgba(128, 128, 128, 0.35);
+    --vscode-panel-background:#ffffff;
+    --vscode-panel-border:rgba(128, 128, 128, 0.35);
+    --vscode-panelTitle-activeForeground:#424242;
+    --vscode-panelTitle-inactiveForeground:rgba(66, 66, 66, 0.75);
+    --vscode-panelTitle-activeBorder:#424242;
+    --vscode-panelInput-border:#dddddd;
+    --vscode-panel-dropBorder:#424242;
+    --vscode-panelSection-dropBackground:rgba(38, 119, 203, 0.18);
+    --vscode-panelSectionHeader-background:rgba(128, 128, 128, 0.2);
+    --vscode-panelSection-border:rgba(128, 128, 128, 0.35);
+    --vscode-statusBar-foreground:#ffffff;
+    --vscode-statusBar-noFolderForeground:#ffffff;
+    --vscode-statusBar-background:#007acc;
+    --vscode-statusBar-noFolderBackground:#68217a;
+    --vscode-statusBarItem-activeBackground:rgba(255, 255, 255, 0.18);
+    --vscode-statusBarItem-hoverBackground:rgba(255, 255, 255, 0.12);
+    --vscode-statusBarItem-prominentForeground:#ffffff;
+    --vscode-statusBarItem-prominentBackground:rgba(0, 0, 0, 0.5);
+    --vscode-statusBarItem-prominentHoverBackground:rgba(0, 0, 0, 0.3);
+    --vscode-activityBar-background:#2c2c2c;
+    --vscode-activityBar-foreground:#ffffff;
+    --vscode-activityBar-inactiveForeground:rgba(255, 255, 255, 0.4);
+    --vscode-activityBar-activeBorder:#ffffff;
+    --vscode-activityBar-dropBorder:#ffffff;
+    --vscode-activityBarBadge-background:#007acc;
+    --vscode-activityBarBadge-foreground:#ffffff;
+    --vscode-statusBarItem-remoteBackground:#16825d;
+    --vscode-statusBarItem-remoteForeground:#ffffff;
+    --vscode-extensionBadge-remoteBackground:#007acc;
+    --vscode-extensionBadge-remoteForeground:#ffffff;
+    --vscode-sideBar-background:#f3f3f3;
+    --vscode-sideBarTitle-foreground:#6f6f6f;
+    --vscode-sideBar-dropBackground:rgba(38, 119, 203, 0.18);
+    --vscode-sideBarSectionHeader-background:rgba(0, 0, 0, 0);
+    --vscode-sideBarSectionHeader-border:rgba(97, 97, 97, 0.19);
+    --vscode-titleBar-activeForeground:#333333;
+    --vscode-titleBar-inactiveForeground:rgba(51, 51, 51, 0.6);
+    --vscode-titleBar-activeBackground:#dddddd;
+    --vscode-titleBar-inactiveBackground:rgba(221, 221, 221, 0.6);
+    --vscode-menubar-selectionForeground:#333333;
+    --vscode-menubar-selectionBackground:rgba(0, 0, 0, 0.1);
+    --vscode-notifications-foreground:#616161;
+    --vscode-notifications-background:#f3f3f3;
+    --vscode-notificationLink-foreground:#006ab1;
+    --vscode-notificationCenterHeader-background:#e7e7e7;
+    --vscode-notifications-border:#e7e7e7;
+    --vscode-notificationsErrorIcon-foreground:#e51400;
+    --vscode-notificationsWarningIcon-foreground:#e9a700;
+    --vscode-notificationsInfoIcon-foreground:#75beff;
+    --vscode-editorGutter-commentRangeForeground:#c5c5c5;
+    --vscode-editor-stackFrameHighlightBackground:rgba(255, 255, 102, 0.45);
+    --vscode-editor-focusedStackFrameHighlightBackground:rgba(206, 231, 206, 0.45);
+    --vscode-terminal-foreground:#333333;
+    --vscode-terminal-selectionBackground:rgba(0, 0, 0, 0.25);
+    --vscode-terminal-border:rgba(128, 128, 128, 0.35);
+    --vscode-statusBar-debuggingBackground:#cc6633;
+    --vscode-statusBar-debuggingForeground:#ffffff;
+    --vscode-settings-headerForeground:#444444;
+    --vscode-settings-modifiedItemIndicator:#66afe0;
+    --vscode-settings-dropdownBackground:#ffffff;
+    --vscode-settings-dropdownBorder:#cecece;
+    --vscode-settings-dropdownListBorder:#c8c8c8;
+    --vscode-settings-checkboxBackground:#ffffff;
+    --vscode-settings-checkboxBorder:#cecece;
+    --vscode-settings-textInputBackground:#ffffff;
+    --vscode-settings-textInputForeground:#616161;
+    --vscode-settings-textInputBorder:#cecece;
+    --vscode-settings-numberInputBackground:#ffffff;
+    --vscode-settings-numberInputForeground:#616161;
+    --vscode-settings-numberInputBorder:#cecece;
+    --vscode-debugExceptionWidget-border:#a31515;
+    --vscode-debugExceptionWidget-background:#f1dfde;
+    --vscode-editorGutter-modifiedBackground:#66afe0;
+    --vscode-editorGutter-addedBackground:#81b88b;
+    --vscode-editorGutter-deletedBackground:#ca4b51;
+    --vscode-minimapGutter-modifiedBackground:#66afe0;
+    --vscode-minimapGutter-addedBackground:#81b88b;
+    --vscode-minimapGutter-deletedBackground:#ca4b51;
+    --vscode-editorOverviewRuler-modifiedForeground:rgba(102, 175, 224, 0.6);
+    --vscode-editorOverviewRuler-addedForeground:rgba(129, 184, 139, 0.6);
+    --vscode-editorOverviewRuler-deletedForeground:rgba(202, 75, 81, 0.6);
+    --vscode-searchEditor-textInputBorder:#cecece;
+    --vscode-debugIcon-breakpointForeground:#e51400;
+    --vscode-debugIcon-breakpointDisabledForeground:#848484;
+    --vscode-debugIcon-breakpointUnverifiedForeground:#848484;
+    --vscode-debugIcon-breakpointCurrentStackframeForeground:#ffcc00;
+    --vscode-debugIcon-breakpointStackframeForeground:#89d185;
+    --vscode-debugToolBar-background:#f3f3f3;
+    --vscode-debugIcon-startForeground:#388a34;
+    --vscode-debugIcon-pauseForeground:#007acc;
+    --vscode-debugIcon-stopForeground:#a1260d;
+    --vscode-debugIcon-disconnectForeground:#a1260d;
+    --vscode-debugIcon-restartForeground:#388a34;
+    --vscode-debugIcon-stepOverForeground:#007acc;
+    --vscode-debugIcon-stepIntoForeground:#007acc;
+    --vscode-debugIcon-stepOutForeground:#007acc;
+    --vscode-debugIcon-continueForeground:#007acc;
+    --vscode-debugIcon-stepBackForeground:#007acc;
+    --vscode-debugTokenExpression-name:#9b46b0;
+    --vscode-debugTokenExpression-value:rgba(108, 108, 108, 0.8);
+    --vscode-debugTokenExpression-string:#a31515;
+    --vscode-debugTokenExpression-boolean:#0000ff;
+    --vscode-debugTokenExpression-number:#098658;
+    --vscode-debugTokenExpression-error:#e51400;
+    --vscode-debugView-exceptionLabelForeground:#ffffff;
+    --vscode-debugView-exceptionLabelBackground:#a31515;
+    --vscode-debugView-stateLabelForeground:#616161;
+    --vscode-debugView-stateLabelBackground:rgba(136, 136, 136, 0.27);
+    --vscode-debugView-valueChangedHighlight:#569cd6;
+    --vscode-debugConsole-infoForeground:#75beff;
+    --vscode-debugConsole-warningForeground:#e9a700;
+    --vscode-debugConsole-errorForeground:#a1260d;
+    --vscode-debugConsole-sourceForeground:#616161;
+    --vscode-debugConsoleInputIcon-foreground:#616161;
+    --vscode-extensionButton-prominentBackground:#327e36;
+    --vscode-extensionButton-prominentForeground:#ffffff;
+    --vscode-extensionButton-prominentHoverBackground:#28632b;
+    --vscode-notebook-cellBorderColor:#dae3e9;
+    --vscode-notebook-focusedEditorBorder:#0090f1;
+    --vscode-notebookStatusSuccessIcon-foreground:#388a34;
+    --vscode-notebookStatusErrorIcon-foreground:#a1260d;
+    --vscode-notebookStatusRunningIcon-foreground:#616161;
+    --vscode-notebook-outputContainerBackgroundColor:rgba(200, 221, 241, 0.31);
+    --vscode-notebook-cellToolbarSeparator:rgba(128, 128, 128, 0.35);
+    --vscode-notebook-focusedCellBackground:rgba(200, 221, 241, 0.31);
+    --vscode-notebook-cellHoverBackground:rgba(200, 221, 241, 0.22);
+    --vscode-notebook-focusedCellBorder:rgba(0, 0, 0, 0.12);
+    --vscode-notebook-cellStatusBarItemHoverBackground:rgba(0, 0, 0, 0.08);
+    --vscode-notebook-cellInsertionIndicator:#0090f1;
+    --vscode-notebookScrollbarSlider-background:rgba(100, 100, 100, 0.4);
+    --vscode-notebookScrollbarSlider-hoverBackground:rgba(100, 100, 100, 0.7);
+    --vscode-notebookScrollbarSlider-activeBackground:rgba(0, 0, 0, 0.6);
+    --vscode-notebook-symbolHighlightBackground:rgba(253, 255, 0, 0.2);
+    --vscode-scm-providerBorder:#c8c8c8;
+    --vscode-terminal-ansiBlack:#000000;
+    --vscode-terminal-ansiRed:#cd3131;
+    --vscode-terminal-ansiGreen:#00bc00;
+    --vscode-terminal-ansiYellow:#949800;
+    --vscode-terminal-ansiBlue:#0451a5;
+    --vscode-terminal-ansiMagenta:#bc05bc;
+    --vscode-terminal-ansiCyan:#0598bc;
+    --vscode-terminal-ansiWhite:#555555;
+    --vscode-terminal-ansiBrightBlack:#666666;
+    --vscode-terminal-ansiBrightRed:#cd3131;
+    --vscode-terminal-ansiBrightGreen:#14ce14;
+    --vscode-terminal-ansiBrightYellow:#b5ba00;
+    --vscode-terminal-ansiBrightBlue:#0451a5;
+    --vscode-terminal-ansiBrightMagenta:#bc05bc;
+    --vscode-terminal-ansiBrightCyan:#0598bc;
+    --vscode-terminal-ansiBrightWhite:#a5a5a5;
+    --vscode-gitDecoration-addedResourceForeground:#587c0c;
+    --vscode-gitDecoration-modifiedResourceForeground:#895503;
+    --vscode-gitDecoration-deletedResourceForeground:#ad0707;
+    --vscode-gitDecoration-untrackedResourceForeground:#007100;
+    --vscode-gitDecoration-ignoredResourceForeground:#8e8e90;
+    --vscode-gitDecoration-conflictingResourceForeground:#6c6cc4;
+    --vscode-gitDecoration-submoduleResourceForeground:#1258a7;
+    --vscode-gitlens-gutterBackgroundColor:rgba(0, 0, 0, 0.05);
+    --vscode-gitlens-gutterForegroundColor:#747474;
+    --vscode-gitlens-gutterUncommittedForegroundColor:rgba(0, 188, 242, 0.6);
+    --vscode-gitlens-trailingLineBackgroundColor:rgba(0, 0, 0, 0);
+    --vscode-gitlens-trailingLineForegroundColor:rgba(153, 153, 153, 0.35);
+    --vscode-gitlens-lineHighlightBackgroundColor:rgba(0, 188, 242, 0.2);
+    --vscode-gitlens-lineHighlightOverviewRulerColor:rgba(0, 188, 242, 0.6);
+    --vscode-issues-newIssueDecoration:rgba(0, 0, 0, 0.28);
+}
+
+body
+{
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-font-family);
+    font-weight: var(--vscode-font-weight);
+    font-size: var(--vscode-font-size);
+    margin: 0;
+    padding: 0 20px;
+}
+
+img
+{
+    max-width: 100%;
+    max-height: 100%;
+}
+
+a
+{
+    color: var(--vscode-textLink-foreground);
+}
+
+a:hover
+{
+    color: var(--vscode-textLink-activeForeground);
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus
+{
+    outline: 1px solid -webkit-focus-ring-color;
+    outline-offset: -1px;
+}
+
+code
+{
+    color: var(--vscode-textPreformat-foreground);
+}
+
+blockquote
+{
+    background: var(--vscode-textBlockQuote-background);
+    border-color: var(--vscode-textBlockQuote-border);
+}
+
+kbd
+{
+    color: var(--vscode-editor-foreground);
+    border-radius: 3px;
+    vertical-align: middle;
+    padding: 1px 3px;
+
+    background-color: hsla(0,0%,50%,.17);
+    border: 1px solid rgba(71,71,71,.4);
+    border-bottom-color: rgba(88,88,88,.4);
+    box-shadow: inset 0 -1px 0 rgba(88,88,88,.4);
+}
+
+.vscode-light kbd
+{
+    background-color: hsla(0,0%,87%,.5);
+    border: 1px solid hsla(0,0%,80%,.7);
+    border-bottom-color: hsla(0,0%,73%,.7);
+    box-shadow: inset 0 -1px 0 hsla(0,0%,73%,.7);
+}
+
+::-webkit-scrollbar
+{
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-corner
+{
+    background-color: var(--vscode-editor-background);
+}
+
+::-webkit-scrollbar-thumb
+{
+    background-color: var(--vscode-scrollbarSlider-background);
+}
+::-webkit-scrollbar-thumb:hover
+{
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+::-webkit-scrollbar-thumb:active
+{
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+}
+
+.emoji
+{
+    height: 20px;
+}
+
+pre
+{
+    white-space: pre-wrap;
+}
+
+.page-break
+{
+    display: block;
+    page-break-after: always;
+}
+
+.no-page-break
+{
+    page-break-inside: avoid;
+}
+</style>
+<style>/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+</style>
+<style>/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+html, body {
+	font-family: var(--markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+body {
+	padding-top: 1em;
+}
+
+/* Reset margin top for elements */
+h1, h2, h3, h4, h5, h6,
+p, ol, ul, pre {
+	margin-top: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 600;
+	margin-top: 24px;
+	margin-bottom: 16px;
+	line-height: 1.25;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection :not(tr,ul,ol).code-active-line:before,
+body.showEditorSelection :not(tr,ul,ol).code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+.vscode-high-contrast.showEditorSelection  :not(tr,ul,ol).code-line .code-line:hover:before {
+	border-left: none;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+/* Prevent `sub` and `sup` elements from affecting line height */
+sub,
+sup {
+	line-height: 0;
+}
+
+ul ul:first-child,
+ul ol:first-child,
+ol ul:first-child,
+ol ol:first-child {
+	margin-bottom: 0;
+}
+
+img, video {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+p {
+	margin-bottom: 16px;
+}
+
+li p {
+	margin-bottom: 0.7em;
+}
+
+ul,
+ol {
+	margin-bottom: 0.7em;
+}
+
+hr {
+	border: 0;
+	height: 1px;
+	border-bottom: 1px solid;
+}
+
+h1 {
+	font-size: 2em;
+	margin-top: 0;
+	padding-bottom: 0.3em;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h2 {
+	font-size: 1.5em;
+	padding-bottom: 0.3em;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h3 {
+	font-size: 1.25em;
+}
+
+h4 {
+	font-size: 1em;
+}
+
+h5 {
+	font-size: 0.875em;
+}
+
+h6 {
+	font-size: 0.85em;
+}
+
+table {
+	border-collapse: collapse;
+	margin-bottom: 0.7em;
+}
+
+th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+th,
+td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0;
+	padding: 0px 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+	border-radius: 2px;
+}
+
+code {
+	font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace);
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	display: inline-block;
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+	background: none;
+}
+
+/** Theming */
+
+pre {
+	background-color: var(--vscode-textCodeBlock-background);
+	border: 1px solid var(--vscode-widget-border);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light h2,
+.vscode-light hr,
+.vscode-light td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark h2,
+.vscode-dark hr,
+.vscode-dark td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+</style>
+<style>/*
+https://raw.githubusercontent.com/isagalaev/highlight.js/master/src/styles/vs2015.css
+*/
+/*
+ * Visual Studio 2015 dark style
+ * Author: Nicolas LLOBERA <nllobera@gmail.com>
+ */
+
+
+.hljs-keyword,
+.hljs-literal,
+.hljs-symbol,
+.hljs-name {
+	color: #569CD6;
+}
+.hljs-link {
+	color: #569CD6;
+	text-decoration: underline;
+}
+
+.hljs-built_in,
+.hljs-type {
+	color: #4EC9B0;
+}
+
+.hljs-number,
+.hljs-class {
+	color: #B8D7A3;
+}
+
+.hljs-string,
+.hljs-meta-string {
+	color: #D69D85;
+}
+
+.hljs-regexp,
+.hljs-template-tag {
+	color: #9A5334;
+}
+
+.hljs-subst,
+.hljs-function,
+.hljs-title,
+.hljs-params,
+.hljs-formula {
+	color: #DCDCDC;
+}
+
+.hljs-comment,
+.hljs-quote {
+	color: #57A64A;
+	font-style: italic;
+}
+
+.hljs-doctag {
+	color: #608B4E;
+}
+
+.hljs-meta,
+.hljs-meta-keyword,
+.hljs-tag {
+	color: #9B9B9B;
+}
+
+.hljs-variable,
+.hljs-template-variable {
+	color: #BD63C5;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-builtin-name {
+	color: #9CDCFE;
+}
+
+.hljs-section {
+	color: gold;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+
+/*.hljs-code {
+	font-family:'Monospace';
+}*/
+
+.hljs-bullet,
+.hljs-selector-tag,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+	color: #D7BA7D;
+}
+
+.hljs-addition {
+	background-color: var(--vscode-diffEditor-insertedTextBackground, rgba(155, 185, 85, 0.2));
+	color: rgb(155, 185, 85);
+	display: inline-block;
+	width: 100%;
+}
+
+.hljs-deletion {
+	background: var(--vscode-diffEditor-removedTextBackground, rgba(255, 0, 0, 0.2));
+	color: rgb(255, 0, 0);
+	display: inline-block;
+	width: 100%;
+}
+
+
+/*
+From https://raw.githubusercontent.com/isagalaev/highlight.js/master/src/styles/vs.css
+*/
+/*
+
+Visual Studio-like style based on original C# coloring by Jason Diamond <jason@diamond.name>
+
+*/
+
+.vscode-light .hljs-function,
+.vscode-light .hljs-params,
+.vscode-light .hljs-number,
+.vscode-light .hljs-class  {
+	color: inherit;
+}
+
+.vscode-light .hljs-comment,
+.vscode-light .hljs-quote,
+.vscode-light .hljs-number,
+.vscode-light .hljs-class,
+.vscode-light .hljs-variable {
+	color: #008000;
+}
+
+.vscode-light .hljs-keyword,
+.vscode-light .hljs-selector-tag,
+.vscode-light .hljs-name,
+.vscode-light .hljs-tag {
+	color: #00f;
+}
+
+.vscode-light .hljs-built_in,
+.vscode-light .hljs-builtin-name {
+	color: #007acc;
+}
+
+.vscode-light .hljs-string,
+.vscode-light .hljs-section,
+.vscode-light .hljs-attribute,
+.vscode-light .hljs-literal,
+.vscode-light .hljs-template-tag,
+.vscode-light .hljs-template-variable,
+.vscode-light .hljs-type {
+	color: #a31515;
+}
+
+.vscode-light .hljs-subst,
+.vscode-light .hljs-selector-attr,
+.vscode-light .hljs-selector-pseudo,
+.vscode-light .hljs-meta,
+.vscode-light .hljs-meta-keyword {
+	color: #2b91af;
+}
+.vscode-light .hljs-title,
+.vscode-light .hljs-doctag {
+	color: #808080;
+}
+
+.vscode-light .hljs-attr {
+	color: #f00;
+}
+
+.vscode-light .hljs-symbol,
+.vscode-light .hljs-bullet,
+.vscode-light .hljs-link {
+	color: #00b0e8;
+}
+
+
+.vscode-light .hljs-emphasis {
+	font-style: italic;
+}
+
+.vscode-light .hljs-strong {
+	font-weight: bold;
+}
+</style>
+<style>@font-face{font-family:KaTeX_AMS;font-style:normal;font-weight:400;src:url(fonts/KaTeX_AMS-Regular.woff2) format("woff2"),url(fonts/KaTeX_AMS-Regular.woff) format("woff"),url(fonts/KaTeX_AMS-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Caligraphic;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Caligraphic-Bold.woff2) format("woff2"),url(fonts/KaTeX_Caligraphic-Bold.woff) format("woff"),url(fonts/KaTeX_Caligraphic-Bold.ttf) format("truetype")}@font-face{font-family:KaTeX_Caligraphic;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Caligraphic-Regular.woff2) format("woff2"),url(fonts/KaTeX_Caligraphic-Regular.woff) format("woff"),url(fonts/KaTeX_Caligraphic-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Fraktur;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Fraktur-Bold.woff2) format("woff2"),url(fonts/KaTeX_Fraktur-Bold.woff) format("woff"),url(fonts/KaTeX_Fraktur-Bold.ttf) format("truetype")}@font-face{font-family:KaTeX_Fraktur;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Fraktur-Regular.woff2) format("woff2"),url(fonts/KaTeX_Fraktur-Regular.woff) format("woff"),url(fonts/KaTeX_Fraktur-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Main;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Main-Bold.woff2) format("woff2"),url(fonts/KaTeX_Main-Bold.woff) format("woff"),url(fonts/KaTeX_Main-Bold.ttf) format("truetype")}@font-face{font-family:KaTeX_Main;font-style:italic;font-weight:700;src:url(fonts/KaTeX_Main-BoldItalic.woff2) format("woff2"),url(fonts/KaTeX_Main-BoldItalic.woff) format("woff"),url(fonts/KaTeX_Main-BoldItalic.ttf) format("truetype")}@font-face{font-family:KaTeX_Main;font-style:italic;font-weight:400;src:url(fonts/KaTeX_Main-Italic.woff2) format("woff2"),url(fonts/KaTeX_Main-Italic.woff) format("woff"),url(fonts/KaTeX_Main-Italic.ttf) format("truetype")}@font-face{font-family:KaTeX_Main;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Main-Regular.woff2) format("woff2"),url(fonts/KaTeX_Main-Regular.woff) format("woff"),url(fonts/KaTeX_Main-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Math;font-style:italic;font-weight:700;src:url(fonts/KaTeX_Math-BoldItalic.woff2) format("woff2"),url(fonts/KaTeX_Math-BoldItalic.woff) format("woff"),url(fonts/KaTeX_Math-BoldItalic.ttf) format("truetype")}@font-face{font-family:KaTeX_Math;font-style:italic;font-weight:400;src:url(fonts/KaTeX_Math-Italic.woff2) format("woff2"),url(fonts/KaTeX_Math-Italic.woff) format("woff"),url(fonts/KaTeX_Math-Italic.ttf) format("truetype")}@font-face{font-family:"KaTeX_SansSerif";font-style:normal;font-weight:700;src:url(fonts/KaTeX_SansSerif-Bold.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Bold.woff) format("woff"),url(fonts/KaTeX_SansSerif-Bold.ttf) format("truetype")}@font-face{font-family:"KaTeX_SansSerif";font-style:italic;font-weight:400;src:url(fonts/KaTeX_SansSerif-Italic.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Italic.woff) format("woff"),url(fonts/KaTeX_SansSerif-Italic.ttf) format("truetype")}@font-face{font-family:"KaTeX_SansSerif";font-style:normal;font-weight:400;src:url(fonts/KaTeX_SansSerif-Regular.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Regular.woff) format("woff"),url(fonts/KaTeX_SansSerif-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Script;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Script-Regular.woff2) format("woff2"),url(fonts/KaTeX_Script-Regular.woff) format("woff"),url(fonts/KaTeX_Script-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Size1;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size1-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size1-Regular.woff) format("woff"),url(fonts/KaTeX_Size1-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Size2;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size2-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size2-Regular.woff) format("woff"),url(fonts/KaTeX_Size2-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Size3;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size3-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size3-Regular.woff) format("woff"),url(fonts/KaTeX_Size3-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Size4;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size4-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size4-Regular.woff) format("woff"),url(fonts/KaTeX_Size4-Regular.ttf) format("truetype")}@font-face{font-family:KaTeX_Typewriter;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Typewriter-Regular.woff2) format("woff2"),url(fonts/KaTeX_Typewriter-Regular.woff) format("woff"),url(fonts/KaTeX_Typewriter-Regular.ttf) format("truetype")}.katex{font:normal 1.21em KaTeX_Main,Times New Roman,serif;line-height:1.2;text-indent:0;text-rendering:auto}.katex *{-ms-high-contrast-adjust:none!important;border-color:currentColor}.katex .katex-version:after{content:"0.16.21"}.katex .katex-mathml{clip:rect(1px,1px,1px,1px);border:0;height:1px;overflow:hidden;padding:0;position:absolute;width:1px}.katex .katex-html>.newline{display:block}.katex .base{position:relative;white-space:nowrap;width:-webkit-min-content;width:-moz-min-content;width:min-content}.katex .base,.katex .strut{display:inline-block}.katex .textbf{font-weight:700}.katex .textit{font-style:italic}.katex .textrm{font-family:KaTeX_Main}.katex .textsf{font-family:KaTeX_SansSerif}.katex .texttt{font-family:KaTeX_Typewriter}.katex .mathnormal{font-family:KaTeX_Math;font-style:italic}.katex .mathit{font-family:KaTeX_Main;font-style:italic}.katex .mathrm{font-style:normal}.katex .mathbf{font-family:KaTeX_Main;font-weight:700}.katex .boldsymbol{font-family:KaTeX_Math;font-style:italic;font-weight:700}.katex .amsrm,.katex .mathbb,.katex .textbb{font-family:KaTeX_AMS}.katex .mathcal{font-family:KaTeX_Caligraphic}.katex .mathfrak,.katex .textfrak{font-family:KaTeX_Fraktur}.katex .mathboldfrak,.katex .textboldfrak{font-family:KaTeX_Fraktur;font-weight:700}.katex .mathtt{font-family:KaTeX_Typewriter}.katex .mathscr,.katex .textscr{font-family:KaTeX_Script}.katex .mathsf,.katex .textsf{font-family:KaTeX_SansSerif}.katex .mathboldsf,.katex .textboldsf{font-family:KaTeX_SansSerif;font-weight:700}.katex .mathitsf,.katex .mathsfit,.katex .textitsf{font-family:KaTeX_SansSerif;font-style:italic}.katex .mainrm{font-family:KaTeX_Main;font-style:normal}.katex .vlist-t{border-collapse:collapse;display:inline-table;table-layout:fixed}.katex .vlist-r{display:table-row}.katex .vlist{display:table-cell;position:relative;vertical-align:bottom}.katex .vlist>span{display:block;height:0;position:relative}.katex .vlist>span>span{display:inline-block}.katex .vlist>span>.pstrut{overflow:hidden;width:0}.katex .vlist-t2{margin-right:-2px}.katex .vlist-s{display:table-cell;font-size:1px;min-width:2px;vertical-align:bottom;width:2px}.katex .vbox{align-items:baseline;display:inline-flex;flex-direction:column}.katex .hbox{width:100%}.katex .hbox,.katex .thinbox{display:inline-flex;flex-direction:row}.katex .thinbox{max-width:0;width:0}.katex .msupsub{text-align:left}.katex .mfrac>span>span{text-align:center}.katex .mfrac .frac-line{border-bottom-style:solid;display:inline-block;width:100%}.katex .hdashline,.katex .hline,.katex .mfrac .frac-line,.katex .overline .overline-line,.katex .rule,.katex .underline .underline-line{min-height:1px}.katex .mspace{display:inline-block}.katex .clap,.katex .llap,.katex .rlap{position:relative;width:0}.katex .clap>.inner,.katex .llap>.inner,.katex .rlap>.inner{position:absolute}.katex .clap>.fix,.katex .llap>.fix,.katex .rlap>.fix{display:inline-block}.katex .llap>.inner{right:0}.katex .clap>.inner,.katex .rlap>.inner{left:0}.katex .clap>.inner>span{margin-left:-50%;margin-right:50%}.katex .rule{border:0 solid;display:inline-block;position:relative}.katex .hline,.katex .overline .overline-line,.katex .underline .underline-line{border-bottom-style:solid;display:inline-block;width:100%}.katex .hdashline{border-bottom-style:dashed;display:inline-block;width:100%}.katex .sqrt>.root{margin-left:.2777777778em;margin-right:-.5555555556em}.katex .fontsize-ensurer.reset-size1.size1,.katex .sizing.reset-size1.size1{font-size:1em}.katex .fontsize-ensurer.reset-size1.size2,.katex .sizing.reset-size1.size2{font-size:1.2em}.katex .fontsize-ensurer.reset-size1.size3,.katex .sizing.reset-size1.size3{font-size:1.4em}.katex .fontsize-ensurer.reset-size1.size4,.katex .sizing.reset-size1.size4{font-size:1.6em}.katex .fontsize-ensurer.reset-size1.size5,.katex .sizing.reset-size1.size5{font-size:1.8em}.katex .fontsize-ensurer.reset-size1.size6,.katex .sizing.reset-size1.size6{font-size:2em}.katex .fontsize-ensurer.reset-size1.size7,.katex .sizing.reset-size1.size7{font-size:2.4em}.katex .fontsize-ensurer.reset-size1.size8,.katex .sizing.reset-size1.size8{font-size:2.88em}.katex .fontsize-ensurer.reset-size1.size9,.katex .sizing.reset-size1.size9{font-size:3.456em}.katex .fontsize-ensurer.reset-size1.size10,.katex .sizing.reset-size1.size10{font-size:4.148em}.katex .fontsize-ensurer.reset-size1.size11,.katex .sizing.reset-size1.size11{font-size:4.976em}.katex .fontsize-ensurer.reset-size2.size1,.katex .sizing.reset-size2.size1{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size2.size2,.katex .sizing.reset-size2.size2{font-size:1em}.katex .fontsize-ensurer.reset-size2.size3,.katex .sizing.reset-size2.size3{font-size:1.1666666667em}.katex .fontsize-ensurer.reset-size2.size4,.katex .sizing.reset-size2.size4{font-size:1.3333333333em}.katex .fontsize-ensurer.reset-size2.size5,.katex .sizing.reset-size2.size5{font-size:1.5em}.katex .fontsize-ensurer.reset-size2.size6,.katex .sizing.reset-size2.size6{font-size:1.6666666667em}.katex .fontsize-ensurer.reset-size2.size7,.katex .sizing.reset-size2.size7{font-size:2em}.katex .fontsize-ensurer.reset-size2.size8,.katex .sizing.reset-size2.size8{font-size:2.4em}.katex .fontsize-ensurer.reset-size2.size9,.katex .sizing.reset-size2.size9{font-size:2.88em}.katex .fontsize-ensurer.reset-size2.size10,.katex .sizing.reset-size2.size10{font-size:3.4566666667em}.katex .fontsize-ensurer.reset-size2.size11,.katex .sizing.reset-size2.size11{font-size:4.1466666667em}.katex .fontsize-ensurer.reset-size3.size1,.katex .sizing.reset-size3.size1{font-size:.7142857143em}.katex .fontsize-ensurer.reset-size3.size2,.katex .sizing.reset-size3.size2{font-size:.8571428571em}.katex .fontsize-ensurer.reset-size3.size3,.katex .sizing.reset-size3.size3{font-size:1em}.katex .fontsize-ensurer.reset-size3.size4,.katex .sizing.reset-size3.size4{font-size:1.1428571429em}.katex .fontsize-ensurer.reset-size3.size5,.katex .sizing.reset-size3.size5{font-size:1.2857142857em}.katex .fontsize-ensurer.reset-size3.size6,.katex .sizing.reset-size3.size6{font-size:1.4285714286em}.katex .fontsize-ensurer.reset-size3.size7,.katex .sizing.reset-size3.size7{font-size:1.7142857143em}.katex .fontsize-ensurer.reset-size3.size8,.katex .sizing.reset-size3.size8{font-size:2.0571428571em}.katex .fontsize-ensurer.reset-size3.size9,.katex .sizing.reset-size3.size9{font-size:2.4685714286em}.katex .fontsize-ensurer.reset-size3.size10,.katex .sizing.reset-size3.size10{font-size:2.9628571429em}.katex .fontsize-ensurer.reset-size3.size11,.katex .sizing.reset-size3.size11{font-size:3.5542857143em}.katex .fontsize-ensurer.reset-size4.size1,.katex .sizing.reset-size4.size1{font-size:.625em}.katex .fontsize-ensurer.reset-size4.size2,.katex .sizing.reset-size4.size2{font-size:.75em}.katex .fontsize-ensurer.reset-size4.size3,.katex .sizing.reset-size4.size3{font-size:.875em}.katex .fontsize-ensurer.reset-size4.size4,.katex .sizing.reset-size4.size4{font-size:1em}.katex .fontsize-ensurer.reset-size4.size5,.katex .sizing.reset-size4.size5{font-size:1.125em}.katex .fontsize-ensurer.reset-size4.size6,.katex .sizing.reset-size4.size6{font-size:1.25em}.katex .fontsize-ensurer.reset-size4.size7,.katex .sizing.reset-size4.size7{font-size:1.5em}.katex .fontsize-ensurer.reset-size4.size8,.katex .sizing.reset-size4.size8{font-size:1.8em}.katex .fontsize-ensurer.reset-size4.size9,.katex .sizing.reset-size4.size9{font-size:2.16em}.katex .fontsize-ensurer.reset-size4.size10,.katex .sizing.reset-size4.size10{font-size:2.5925em}.katex .fontsize-ensurer.reset-size4.size11,.katex .sizing.reset-size4.size11{font-size:3.11em}.katex .fontsize-ensurer.reset-size5.size1,.katex .sizing.reset-size5.size1{font-size:.5555555556em}.katex .fontsize-ensurer.reset-size5.size2,.katex .sizing.reset-size5.size2{font-size:.6666666667em}.katex .fontsize-ensurer.reset-size5.size3,.katex .sizing.reset-size5.size3{font-size:.7777777778em}.katex .fontsize-ensurer.reset-size5.size4,.katex .sizing.reset-size5.size4{font-size:.8888888889em}.katex .fontsize-ensurer.reset-size5.size5,.katex .sizing.reset-size5.size5{font-size:1em}.katex .fontsize-ensurer.reset-size5.size6,.katex .sizing.reset-size5.size6{font-size:1.1111111111em}.katex .fontsize-ensurer.reset-size5.size7,.katex .sizing.reset-size5.size7{font-size:1.3333333333em}.katex .fontsize-ensurer.reset-size5.size8,.katex .sizing.reset-size5.size8{font-size:1.6em}.katex .fontsize-ensurer.reset-size5.size9,.katex .sizing.reset-size5.size9{font-size:1.92em}.katex .fontsize-ensurer.reset-size5.size10,.katex .sizing.reset-size5.size10{font-size:2.3044444444em}.katex .fontsize-ensurer.reset-size5.size11,.katex .sizing.reset-size5.size11{font-size:2.7644444444em}.katex .fontsize-ensurer.reset-size6.size1,.katex .sizing.reset-size6.size1{font-size:.5em}.katex .fontsize-ensurer.reset-size6.size2,.katex .sizing.reset-size6.size2{font-size:.6em}.katex .fontsize-ensurer.reset-size6.size3,.katex .sizing.reset-size6.size3{font-size:.7em}.katex .fontsize-ensurer.reset-size6.size4,.katex .sizing.reset-size6.size4{font-size:.8em}.katex .fontsize-ensurer.reset-size6.size5,.katex .sizing.reset-size6.size5{font-size:.9em}.katex .fontsize-ensurer.reset-size6.size6,.katex .sizing.reset-size6.size6{font-size:1em}.katex .fontsize-ensurer.reset-size6.size7,.katex .sizing.reset-size6.size7{font-size:1.2em}.katex .fontsize-ensurer.reset-size6.size8,.katex .sizing.reset-size6.size8{font-size:1.44em}.katex .fontsize-ensurer.reset-size6.size9,.katex .sizing.reset-size6.size9{font-size:1.728em}.katex .fontsize-ensurer.reset-size6.size10,.katex .sizing.reset-size6.size10{font-size:2.074em}.katex .fontsize-ensurer.reset-size6.size11,.katex .sizing.reset-size6.size11{font-size:2.488em}.katex .fontsize-ensurer.reset-size7.size1,.katex .sizing.reset-size7.size1{font-size:.4166666667em}.katex .fontsize-ensurer.reset-size7.size2,.katex .sizing.reset-size7.size2{font-size:.5em}.katex .fontsize-ensurer.reset-size7.size3,.katex .sizing.reset-size7.size3{font-size:.5833333333em}.katex .fontsize-ensurer.reset-size7.size4,.katex .sizing.reset-size7.size4{font-size:.6666666667em}.katex .fontsize-ensurer.reset-size7.size5,.katex .sizing.reset-size7.size5{font-size:.75em}.katex .fontsize-ensurer.reset-size7.size6,.katex .sizing.reset-size7.size6{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size7.size7,.katex .sizing.reset-size7.size7{font-size:1em}.katex .fontsize-ensurer.reset-size7.size8,.katex .sizing.reset-size7.size8{font-size:1.2em}.katex .fontsize-ensurer.reset-size7.size9,.katex .sizing.reset-size7.size9{font-size:1.44em}.katex .fontsize-ensurer.reset-size7.size10,.katex .sizing.reset-size7.size10{font-size:1.7283333333em}.katex .fontsize-ensurer.reset-size7.size11,.katex .sizing.reset-size7.size11{font-size:2.0733333333em}.katex .fontsize-ensurer.reset-size8.size1,.katex .sizing.reset-size8.size1{font-size:.3472222222em}.katex .fontsize-ensurer.reset-size8.size2,.katex .sizing.reset-size8.size2{font-size:.4166666667em}.katex .fontsize-ensurer.reset-size8.size3,.katex .sizing.reset-size8.size3{font-size:.4861111111em}.katex .fontsize-ensurer.reset-size8.size4,.katex .sizing.reset-size8.size4{font-size:.5555555556em}.katex .fontsize-ensurer.reset-size8.size5,.katex .sizing.reset-size8.size5{font-size:.625em}.katex .fontsize-ensurer.reset-size8.size6,.katex .sizing.reset-size8.size6{font-size:.6944444444em}.katex .fontsize-ensurer.reset-size8.size7,.katex .sizing.reset-size8.size7{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size8.size8,.katex .sizing.reset-size8.size8{font-size:1em}.katex .fontsize-ensurer.reset-size8.size9,.katex .sizing.reset-size8.size9{font-size:1.2em}.katex .fontsize-ensurer.reset-size8.size10,.katex .sizing.reset-size8.size10{font-size:1.4402777778em}.katex .fontsize-ensurer.reset-size8.size11,.katex .sizing.reset-size8.size11{font-size:1.7277777778em}.katex .fontsize-ensurer.reset-size9.size1,.katex .sizing.reset-size9.size1{font-size:.2893518519em}.katex .fontsize-ensurer.reset-size9.size2,.katex .sizing.reset-size9.size2{font-size:.3472222222em}.katex .fontsize-ensurer.reset-size9.size3,.katex .sizing.reset-size9.size3{font-size:.4050925926em}.katex .fontsize-ensurer.reset-size9.size4,.katex .sizing.reset-size9.size4{font-size:.462962963em}.katex .fontsize-ensurer.reset-size9.size5,.katex .sizing.reset-size9.size5{font-size:.5208333333em}.katex .fontsize-ensurer.reset-size9.size6,.katex .sizing.reset-size9.size6{font-size:.5787037037em}.katex .fontsize-ensurer.reset-size9.size7,.katex .sizing.reset-size9.size7{font-size:.6944444444em}.katex .fontsize-ensurer.reset-size9.size8,.katex .sizing.reset-size9.size8{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size9.size9,.katex .sizing.reset-size9.size9{font-size:1em}.katex .fontsize-ensurer.reset-size9.size10,.katex .sizing.reset-size9.size10{font-size:1.2002314815em}.katex .fontsize-ensurer.reset-size9.size11,.katex .sizing.reset-size9.size11{font-size:1.4398148148em}.katex .fontsize-ensurer.reset-size10.size1,.katex .sizing.reset-size10.size1{font-size:.2410800386em}.katex .fontsize-ensurer.reset-size10.size2,.katex .sizing.reset-size10.size2{font-size:.2892960463em}.katex .fontsize-ensurer.reset-size10.size3,.katex .sizing.reset-size10.size3{font-size:.337512054em}.katex .fontsize-ensurer.reset-size10.size4,.katex .sizing.reset-size10.size4{font-size:.3857280617em}.katex .fontsize-ensurer.reset-size10.size5,.katex .sizing.reset-size10.size5{font-size:.4339440694em}.katex .fontsize-ensurer.reset-size10.size6,.katex .sizing.reset-size10.size6{font-size:.4821600771em}.katex .fontsize-ensurer.reset-size10.size7,.katex .sizing.reset-size10.size7{font-size:.5785920926em}.katex .fontsize-ensurer.reset-size10.size8,.katex .sizing.reset-size10.size8{font-size:.6943105111em}.katex .fontsize-ensurer.reset-size10.size9,.katex .sizing.reset-size10.size9{font-size:.8331726133em}.katex .fontsize-ensurer.reset-size10.size10,.katex .sizing.reset-size10.size10{font-size:1em}.katex .fontsize-ensurer.reset-size10.size11,.katex .sizing.reset-size10.size11{font-size:1.1996142719em}.katex .fontsize-ensurer.reset-size11.size1,.katex .sizing.reset-size11.size1{font-size:.2009646302em}.katex .fontsize-ensurer.reset-size11.size2,.katex .sizing.reset-size11.size2{font-size:.2411575563em}.katex .fontsize-ensurer.reset-size11.size3,.katex .sizing.reset-size11.size3{font-size:.2813504823em}.katex .fontsize-ensurer.reset-size11.size4,.katex .sizing.reset-size11.size4{font-size:.3215434084em}.katex .fontsize-ensurer.reset-size11.size5,.katex .sizing.reset-size11.size5{font-size:.3617363344em}.katex .fontsize-ensurer.reset-size11.size6,.katex .sizing.reset-size11.size6{font-size:.4019292605em}.katex .fontsize-ensurer.reset-size11.size7,.katex .sizing.reset-size11.size7{font-size:.4823151125em}.katex .fontsize-ensurer.reset-size11.size8,.katex .sizing.reset-size11.size8{font-size:.578778135em}.katex .fontsize-ensurer.reset-size11.size9,.katex .sizing.reset-size11.size9{font-size:.6945337621em}.katex .fontsize-ensurer.reset-size11.size10,.katex .sizing.reset-size11.size10{font-size:.8336012862em}.katex .fontsize-ensurer.reset-size11.size11,.katex .sizing.reset-size11.size11{font-size:1em}.katex .delimsizing.size1{font-family:KaTeX_Size1}.katex .delimsizing.size2{font-family:KaTeX_Size2}.katex .delimsizing.size3{font-family:KaTeX_Size3}.katex .delimsizing.size4{font-family:KaTeX_Size4}.katex .delimsizing.mult .delim-size1>span{font-family:KaTeX_Size1}.katex .delimsizing.mult .delim-size4>span{font-family:KaTeX_Size4}.katex .nulldelimiter{display:inline-block;width:.12em}.katex .delimcenter,.katex .op-symbol{position:relative}.katex .op-symbol.small-op{font-family:KaTeX_Size1}.katex .op-symbol.large-op{font-family:KaTeX_Size2}.katex .accent>.vlist-t,.katex .op-limits>.vlist-t{text-align:center}.katex .accent .accent-body{position:relative}.katex .accent .accent-body:not(.accent-full){width:0}.katex .overlay{display:block}.katex .mtable .vertical-separator{display:inline-block;min-width:1px}.katex .mtable .arraycolsep{display:inline-block}.katex .mtable .col-align-c>.vlist-t{text-align:center}.katex .mtable .col-align-l>.vlist-t{text-align:left}.katex .mtable .col-align-r>.vlist-t{text-align:right}.katex .svg-align{text-align:left}.katex svg{fill:currentColor;stroke:currentColor;fill-rule:nonzero;fill-opacity:1;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;display:block;height:inherit;position:absolute;width:100%}.katex svg path{stroke:none}.katex img{border-style:none;max-height:none;max-width:none;min-height:0;min-width:0}.katex .stretchy{display:block;overflow:hidden;position:relative;width:100%}.katex .stretchy:after,.katex .stretchy:before{content:""}.katex .hide-tail{overflow:hidden;position:relative;width:100%}.katex .halfarrow-left{left:0;overflow:hidden;position:absolute;width:50.2%}.katex .halfarrow-right{overflow:hidden;position:absolute;right:0;width:50.2%}.katex .brace-left{left:0;overflow:hidden;position:absolute;width:25.1%}.katex .brace-center{left:25%;overflow:hidden;position:absolute;width:50%}.katex .brace-right{overflow:hidden;position:absolute;right:0;width:25.1%}.katex .x-arrow-pad{padding:0 .5em}.katex .cd-arrow-pad{padding:0 .55556em 0 .27778em}.katex .mover,.katex .munder,.katex .x-arrow{text-align:center}.katex .boxpad{padding:0 .3em}.katex .fbox,.katex .fcolorbox{border:.04em solid;box-sizing:border-box}.katex .cancel-pad{padding:0 .2em}.katex .cancel-lap{margin-left:-.2em;margin-right:-.2em}.katex .sout{border-bottom-style:solid;border-bottom-width:.08em}.katex .angl{border-right:.049em solid;border-top:.049em solid;box-sizing:border-box;margin-right:.03889em}.katex .anglpad{padding:0 .03889em}.katex .eqn-num:before{content:"(" counter(katexEqnNo) ")";counter-increment:katexEqnNo}.katex .mml-eqn-num:before{content:"(" counter(mmlEqnNo) ")";counter-increment:mmlEqnNo}.katex .mtr-glue{width:50%}.katex .cd-vert-arrow{display:inline-block;position:relative}.katex .cd-label-left{display:inline-block;position:absolute;right:calc(50% + .3em);text-align:left}.katex .cd-label-right{display:inline-block;left:calc(50% + .3em);position:absolute;text-align:right}.katex-display{display:block;margin:1em 0;text-align:center}.katex-display>.katex{display:block;text-align:center;white-space:nowrap}.katex-display>.katex>.katex-html{display:block;position:relative}.katex-display>.katex>.katex-html>.tag{position:absolute;right:0}.katex-display.leqno>.katex>.katex-html>.tag{left:0;right:auto}.katex-display.fleqn>.katex{padding-left:2em;text-align:left}body{counter-reset:katexEqnNo mmlEqnNo}
+</style>
+<style>/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.katex-error {
+	color: var(--vscode-editorError-foreground);
+}
+</style>
+
+    </head>
+    <body class="vscode-body vscode-light">
+        <div data-line="0" class="code-line" dir="auto"></div>
+<p>
+  <img src="logo/logo-432x260.png" alt="data-context logo" width="440" style="background-color:#333;border-radius:4em;border-color: #999;border-width: 0.5em;border-style: dashed;">
+</p>
+<h1 data-line="4" class="code-line" dir="auto" id="data-context" tabindex="-1">data-context</h1>
+<p data-line="6" class="code-line" dir="auto">Watch data changes in the browser and node.js</p>
+<h2 data-line="8" class="code-line" dir="auto" id="-table-of-contents" tabindex="-1">📚 Table of contents</h2>
+<ul data-line="10" class="code-line" dir="auto">
+<li data-line="10" class="code-line" dir="auto"><a href="#-features" data-href="#-features">✨ Features</a></li>
+<li data-line="11" class="code-line" dir="auto"><a href="#-description" data-href="#-description">📋 Description</a></li>
+<li data-line="12" class="code-line" dir="auto"><a href="#-installation" data-href="#-installation">📦 Installation</a></li>
+<li data-line="13" class="code-line" dir="auto"><a href="#-testing" data-href="#-testing">🧪 Testing</a></li>
+<li data-line="14" class="code-line" dir="auto"><a href="#-usage" data-href="#-usage">🚀 Usage</a></li>
+<li data-line="15" class="code-line" dir="auto"><a href="#-api-reference" data-href="#-api-reference">📖 API Reference</a></li>
+<li data-line="16" class="code-line" dir="auto"><a href="#-license" data-href="#-license">📜 License</a></li>
 </ul>
-</li>
-<li><a href="#references"><strong>References</strong></a>
-<ul>
-<li><a href="#createdatacontextdata-propertyname-parent">createDataContext(data, propertyName, parent)</a></li>
-<li><a href="#datacontext">DataContext</a></li>
-<li><a href="#eventlistenerevent">EventListener(event)</a></li>
-<li><a href="#eventobject">EventObject</a></li>
-<li><a href="#propertyname">PropertyName</a></li>
-<li><a href="#reviver">Reviver</a></li>
+<div data-line="18" class="code-line" dir="auto"></div>
+ <p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="20" class="code-line" dir="auto">
+<h2 data-line="22" class="code-line" dir="auto" id="-features" tabindex="-1">✨ Features</h2>
+<ul data-line="24" class="code-line" dir="auto">
+<li data-line="24" class="code-line" dir="auto">Create a context from the data.</li>
+<li data-line="25" class="code-line" dir="auto">Listen for change events.</li>
+<li data-line="26" class="code-line" dir="auto">Update the context.</li>
+<li data-line="27" class="code-line" dir="auto">Parse JSON data to the context.</li>
+<li data-line="28" class="code-line" dir="auto">Stringify changes to JSON.</li>
+<li data-line="29" class="code-line" dir="auto">Used extended JSON data format. Metadata and comments are supported.</li>
 </ul>
-</li>
-<li><a href="#license"><strong>License</strong></a></li>
-</ul>
-</div>
-</div>
-</div>
- 
-<div class="col-lg-9 mt-2">
-<div class="ps-4 markdown-body" data-bs-spy="scroll" data-bs-target="#list-headers" data-bs-offset="0" tabindex="0">
-<h2 id="introduction">Introduction</h2>
-<p>It is a simple and easy-to-use library that can be used in the browser or in node.js.
+<div data-line="31" class="code-line" dir="auto"></div>
+ <p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="33" class="code-line" dir="auto">
+<h2 data-line="35" class="code-line" dir="auto" id="-description" tabindex="-1">📋 Description</h2>
+<p data-line="37" class="code-line" dir="auto">The 'data-context' module provides a way to create a data context that can watch for changes in the data.</p>
+<p data-line="39" class="code-line" dir="auto">It is a simple and easy-to-use library that can be used in the browser or in node.js.
 You can create a context from the data, then listen for change events and stringify changes.
 Included event-emitter functions. Automatically detects changes in the data and emits events.
 Designed for module 'data-context-binding' for binding data to the DOM and for module 'fs-broker' for working with files.
-Using a single-page application (SPA) with the <a href="https://www.npmjs.com/package/data-context-binding">'data-context-binding'</a> module gives very good results.
-This module is part of the <a href="https://www.npmjs.com/package/conextra">'conextra'</a> framework,
+Using a single-page application (SPA) with the <a href="https://www.npmjs.com/package/data-context-binding" data-href="https://www.npmjs.com/package/data-context-binding">'data-context-binding'</a> module gives very good results.
+This module is part of the <a href="https://www.npmjs.com/package/conextra" data-href="https://www.npmjs.com/package/conextra">'conextra'</a> framework,
 which is a simple and easy-to-use single-page application (SPA) framework.
 You have to try it! A different solution than MVC (model–view–controller).</p>
-<blockquote>
-<p>Please note, this version is not backward compatible with version 1.x<br>
+<blockquote data-line="48" class="code-line" dir="auto">
+<p data-line="48" class="code-line" dir="auto">Please note, this version is not backward compatible with version 1.x<br>
 Please note that JSON string is not 100% compatible.<br>
 It has been extended to allow for incremental updates of JSON files.<br>
 Added the ability to include metadata and comments.<br>
 Parsing of JSON files is enabled.</p>
 </blockquote>
-<p>The code in 'data-context' provides a robust mechanism for creating data contexts that can track changes,
+<p data-line="54" class="code-line" dir="auto">The code in 'data-context' provides a robust mechanism for creating data contexts that can track changes,
 emit events, and support serialization/deserialization.
 It leverages JavaScript proxies to intercept and manage property operations,
 making it a powerful tool for managing state in complex applications.</p>
-<p>The data context library implemented in 'data-context' can be used in various scenarios where tracking changes to data,
+<p data-line="59" class="code-line" dir="auto">The data context library implemented in 'data-context' can be used in various scenarios where tracking changes to data,
 emitting events, and managing state are essential.
 Here are some potential use cases:</p>
-<p><strong>1. State Management in Single Page Applications (SPAs)</strong></p>
-<ul>
-<li><strong>Description</strong>: Manage the state of an application by creating data contexts for different parts of the state.</li>
-<li><strong>Example</strong>: Use the library to track changes in user data, application settings, or UI state, and automatically update the UI when changes occur.</li>
+<p data-line="63" class="code-line" dir="auto"><strong>1. State Management in Single Page Applications (SPAs)</strong></p>
+<ul data-line="64" class="code-line" dir="auto">
+<li data-line="64" class="code-line" dir="auto"><strong>Description</strong>: Manage the state of an application by creating data contexts for different parts of the state.</li>
+<li data-line="65" class="code-line" dir="auto"><strong>Example</strong>: Use the library to track changes in user data, application settings, or UI state, and automatically update the UI when changes occur.</li>
 </ul>
-<p><strong>2. Data Binding</strong></p>
-<ul>
-<li><strong>Description</strong>: Bind data to the DOM and automatically update the DOM when the data changes.</li>
-<li><strong>Example</strong>: Use the library in conjunction with a data-binding library like data-context-binding to create dynamic and responsive web applications.</li>
+<p data-line="67" class="code-line" dir="auto"><strong>2. Data Binding</strong></p>
+<ul data-line="68" class="code-line" dir="auto">
+<li data-line="68" class="code-line" dir="auto"><strong>Description</strong>: Bind data to the DOM and automatically update the DOM when the data changes.</li>
+<li data-line="69" class="code-line" dir="auto"><strong>Example</strong>: Use the library in conjunction with a data-binding library like data-context-binding to create dynamic and responsive web applications.</li>
 </ul>
-<p><strong>3. Form Handling</strong></p>
-<ul>
-<li><strong>Description</strong>: Track changes to form inputs and validate data in real-time.</li>
-<li><strong>Example</strong>: Create a data context for form data, listen for changes to input fields, and validate the data or provide instant feedback to the user.</li>
+<p data-line="71" class="code-line" dir="auto"><strong>3. Form Handling</strong></p>
+<ul data-line="72" class="code-line" dir="auto">
+<li data-line="72" class="code-line" dir="auto"><strong>Description</strong>: Track changes to form inputs and validate data in real-time.</li>
+<li data-line="73" class="code-line" dir="auto"><strong>Example</strong>: Create a data context for form data, listen for changes to input fields, and validate the data or provide instant feedback to the user.</li>
 </ul>
-<p><strong>4. Real-time Collaboration</strong></p>
-<ul>
-<li><strong>Description</strong>: Enable real-time collaboration features by synchronizing data changes across multiple clients.</li>
-<li><strong>Example</strong>: Use the library to track changes to a shared document or project, and emit events to notify other clients of the changes.</li>
+<p data-line="75" class="code-line" dir="auto"><strong>4. Real-time Collaboration</strong></p>
+<ul data-line="76" class="code-line" dir="auto">
+<li data-line="76" class="code-line" dir="auto"><strong>Description</strong>: Enable real-time collaboration features by synchronizing data changes across multiple clients.</li>
+<li data-line="77" class="code-line" dir="auto"><strong>Example</strong>: Use the library to track changes to a shared document or project, and emit events to notify other clients of the changes.</li>
 </ul>
-<p><strong>5. Undo/Redo Functionality</strong></p>
-<ul>
-<li><strong>Description</strong>: Implement undo and redo functionality by tracking changes to data and allowing users to revert to previous states.</li>
-<li><strong>Example</strong>: Use the library to maintain a history of changes and provide undo/redo capabilities in applications like text editors or drawing tools.</li>
+<p data-line="79" class="code-line" dir="auto"><strong>5. Undo/Redo Functionality</strong></p>
+<ul data-line="80" class="code-line" dir="auto">
+<li data-line="80" class="code-line" dir="auto"><strong>Description</strong>: Implement undo and redo functionality by tracking changes to data and allowing users to revert to previous states.</li>
+<li data-line="81" class="code-line" dir="auto"><strong>Example</strong>: Use the library to maintain a history of changes and provide undo/redo capabilities in applications like text editors or drawing tools.</li>
 </ul>
-<p><strong>6. Data Synchronization</strong></p>
-<ul>
-<li><strong>Description</strong>: Synchronize data between different parts of an application or between client and server.</li>
-<li><strong>Example</strong>: Use the library to track changes to local data and synchronize those changes with a remote server or other clients.</li>
+<p data-line="83" class="code-line" dir="auto"><strong>6. Data Synchronization</strong></p>
+<ul data-line="84" class="code-line" dir="auto">
+<li data-line="84" class="code-line" dir="auto"><strong>Description</strong>: Synchronize data between different parts of an application or between client and server.</li>
+<li data-line="85" class="code-line" dir="auto"><strong>Example</strong>: Use the library to track changes to local data and synchronize those changes with a remote server or other clients.</li>
 </ul>
-<p><strong>7. Configuration Management</strong></p>
-<ul>
-<li><strong>Description</strong>: Manage application configuration settings and track changes to those settings.</li>
-<li><strong>Example</strong>: Create a data context for configuration settings, listen for changes, and update the application behavior accordingly.</li>
+<p data-line="87" class="code-line" dir="auto"><strong>7. Configuration Management</strong></p>
+<ul data-line="88" class="code-line" dir="auto">
+<li data-line="88" class="code-line" dir="auto"><strong>Description</strong>: Manage application configuration settings and track changes to those settings.</li>
+<li data-line="89" class="code-line" dir="auto"><strong>Example</strong>: Create a data context for configuration settings, listen for changes, and update the application behavior accordingly.</li>
 </ul>
-<p><strong>8. Logging and Auditing</strong></p>
-<ul>
-<li><strong>Description</strong>: Log changes to data for auditing purposes.</li>
-<li><strong>Example</strong>: Use the library to track changes to sensitive data and log those changes for security audits or compliance purposes.</li>
+<p data-line="91" class="code-line" dir="auto"><strong>8. Logging and Auditing</strong></p>
+<ul data-line="92" class="code-line" dir="auto">
+<li data-line="92" class="code-line" dir="auto"><strong>Description</strong>: Log changes to data for auditing purposes.</li>
+<li data-line="93" class="code-line" dir="auto"><strong>Example</strong>: Use the library to track changes to sensitive data and log those changes for security audits or compliance purposes.</li>
 </ul>
-<p><strong>9. Testing and Debugging</strong></p>
-<ul>
-<li><strong>Description</strong>: Facilitate testing and debugging by tracking changes to data and emitting events.</li>
-<li><strong>Example</strong>: Use the library to create test cases that verify the correct behavior of data changes and event emissions.</li>
+<p data-line="95" class="code-line" dir="auto"><strong>9. Testing and Debugging</strong></p>
+<ul data-line="96" class="code-line" dir="auto">
+<li data-line="96" class="code-line" dir="auto"><strong>Description</strong>: Facilitate testing and debugging by tracking changes to data and emitting events.</li>
+<li data-line="97" class="code-line" dir="auto"><strong>Example</strong>: Use the library to create test cases that verify the correct behavior of data changes and event emissions.</li>
 </ul>
-<p><strong>10. Incremental JSON Updates</strong></p>
-<ul>
-<li><strong>Description</strong>: Handle incremental updates to JSON data, including metadata and comments.</li>
-<li><strong>Example</strong>: Use the library to parse, modify, and serialize JSON data with support for incremental updates and metadata.</li>
+<p data-line="99" class="code-line" dir="auto"><strong>10. Incremental JSON Updates</strong></p>
+<ul data-line="100" class="code-line" dir="auto">
+<li data-line="100" class="code-line" dir="auto"><strong>Description</strong>: Handle incremental updates to JSON data, including metadata and comments.</li>
+<li data-line="101" class="code-line" dir="auto"><strong>Example</strong>: Use the library to parse, modify, and serialize JSON data with support for incremental updates and metadata.</li>
 </ul>
-<h2 id="features">Features</h2>
-<ul>
-<li>Create a context from the data.</li>
-<li>Listen for change events.</li>
-<li>Update the context.</li>
-<li>Parse JSON data to the context.</li>
-<li>Stringify changes to JSON.</li>
-<li>Used extended JSON data format. Metadata and comments are supported.</li>
-</ul>
-<h2 id="installation">Installation</h2>
-<h3 id="nodejs">nodejs:</h3>
-<p><code>npm install data-context</code></p>
-<h3 id="browser">browser:</h3>
-<p><code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context@2&quot; &gt;&lt;/script&gt;</code></p>
-<h3 id="using-tiny-https-server-router">Using tiny-https-server router:</h3>
-<p>or use <a href="https://www.npmjs.com/package/tiny-https-server">'tiny-https-server'</a> router:
-<code>&lt;script async src=&quot;node_modules/data-context@2&quot;&gt;&lt;/script&gt;</code></p>
-<h2 id="testing">Testing</h2>
-<p>You can test <code>data-context</code> on your system using this command:</p>
-<p><code>node ./node_modules/data-context/index.test</code></p>
-<p>or in the <code>data-context</code> project directory:</p>
-<p><code>npm test</code></p>
-<p>or open in your browser:</p>
-<p><code>./node_modules/data-context/index.test.html</code></p>
-<h2 id="usage">Usage</h2>
-<h3 id="nodejs-example">nodejs example:</h3>
-<pre><code class="language-javascript">'use strict';
+<div data-line="103" class="code-line" dir="auto"></div>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="105" class="code-line" dir="auto">
+<h2 data-line="107" class="code-line" dir="auto" id="-installation" tabindex="-1">📦 Installation</h2>
+<p data-line="109" class="code-line" dir="auto"><a href="https://www.npmjs.com/package/data-context" data-href="https://www.npmjs.com/package/data-context">Available on npm</a></p>
+<h3 data-line="111" class="code-line" dir="auto" id="nodejs" tabindex="-1">nodejs:</h3>
+<pre><code data-line="112" class="code-line language-bash" dir="auto">npm install data-context
+</code></pre>
+<h3 data-line="116" class="code-line" dir="auto" id="browser" tabindex="-1">browser:</h3>
+<p data-line="117" class="code-line" dir="auto">or use CDN  (for an HTML page hosted on the server):</p>
+<pre><code data-line="118" class="code-line language-html" dir="auto"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"./node_modules/data-context/borwser.js"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+</code></pre>
+<p data-line="121" class="code-line" dir="auto">or use CDN (for a standalone HTML page):</p>
+<pre><code data-line="122" class="code-line language-html" dir="auto"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdn.jsdelivr.net/npm/data-context"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+</code></pre>
+<p data-line="125" class="code-line" dir="auto">or use 'tiny-https-server':</p>
+<pre><code data-line="126" class="code-line language-html" dir="auto"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">async</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"node_modules/data-context@2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+</code></pre>
+<div data-line="130" class="code-line" dir="auto"></div>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="132" class="code-line" dir="auto">
+<h2 data-line="134" class="code-line" dir="auto" id="-testing" tabindex="-1">🧪 Testing</h2>
+<p data-line="136" class="code-line" dir="auto">You can test <code>data-context</code> on your system using this command:</p>
+<p data-line="138" class="code-line" dir="auto"><code>node ./node_modules/data-context/index.test</code></p>
+<p data-line="140" class="code-line" dir="auto">or in the <code>data-context</code> project directory:</p>
+<p data-line="142" class="code-line" dir="auto"><code>npm test</code></p>
+<p data-line="144" class="code-line" dir="auto">or open in your browser:</p>
+<p data-line="146" class="code-line" dir="auto"><code>./node_modules/data-context/index.test.html</code></p>
+<div data-line="148" class="code-line" dir="auto"></div>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="150" class="code-line" dir="auto">
+<h2 data-line="152" class="code-line" dir="auto" id="-usage" tabindex="-1">🚀 Usage</h2>
+<h3 data-line="154" class="code-line" dir="auto" id="nodejs-example" tabindex="-1">nodejs example:</h3>
+<pre><code data-line="155" class="code-line language-javascript" dir="auto"><span class="hljs-meta">'use strict'</span>;
 
-//Import the required modules.
-const { createDataContext, parse } = require('data-context');
-//import { createDataContext, parse } from &quot;data-context&quot;;
+<span class="hljs-comment">//Import the required modules.</span>
+<span class="hljs-keyword">const</span> { createDataContext, parse } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'data-context'</span>);
+<span class="hljs-comment">//import { createDataContext, parse } from "data-context";</span>
 
-//Create a JSON string.
-var strJSON = `{
-    &quot;count&quot;: 0
-}`;
+<span class="hljs-comment">//Create a JSON string.</span>
+<span class="hljs-keyword">var</span> strJSON = <span class="hljs-string">`{
+    "count": 0
+}`</span>;
 
-//Interval id.
-var intervalId = null;
+<span class="hljs-comment">//Interval id.</span>
+<span class="hljs-keyword">var</span> intervalId = <span class="hljs-literal">null</span>;
 
-//Create data context.
-const context = parse(
-    //Parse the JSON string.
+<span class="hljs-comment">//Create data context.</span>
+<span class="hljs-keyword">const</span> context = <span class="hljs-title function_">parse</span>(
+    <span class="hljs-comment">//Parse the JSON string.</span>
     strJSON,
-    //Reviver function. Create data context.
+    <span class="hljs-comment">//Reviver function. Create data context.</span>
     createDataContext
 );
 
-//Listen to the count property.
-context.on('count', (event) =&gt; {
+<span class="hljs-comment">//Listen to the count property.</span>
+context.<span class="hljs-title function_">on</span>(<span class="hljs-string">'count'</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
 
-    console.log('event:', event);
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'event:'</span>, event);
 
-    if (event.newValue &gt; 10) {
+    <span class="hljs-keyword">if</span> (event.<span class="hljs-property">newValue</span> &gt; <span class="hljs-number">10</span>) {
 
-        console.log('I am dead.');
-        clearInterval(intervalId);
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'I am dead.'</span>);
+        <span class="hljs-built_in">clearInterval</span>(intervalId);
 
-        //I am dead. Remove listener.
-        return false;
+        <span class="hljs-comment">//I am dead. Remove listener.</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
     }
 
-    //I am live. Continue listening.
-    return true;
+    <span class="hljs-comment">//I am live. Continue listening.</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
 });
 
-context.on('-change', (event) =&gt; {
+context.<span class="hljs-title function_">on</span>(<span class="hljs-string">'-change'</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
 
-    //Stringify the changes.
-    var str = context.stringifyChanges(
-        //Reviver function. Default is null.
-        null,
-        //Indentation. Default is 0.
-        4,
-        //Include only modified data. Default is true.
-        true,
-        //Set data to unmodified after stringification. Default is true.
-        true
+    <span class="hljs-comment">//Stringify the changes.</span>
+    <span class="hljs-keyword">var</span> str = context.<span class="hljs-title function_">stringifyChanges</span>(
+        <span class="hljs-comment">//Reviver function. Default is null.</span>
+        <span class="hljs-literal">null</span>,
+        <span class="hljs-comment">//Indentation. Default is 0.</span>
+        <span class="hljs-number">4</span>,
+        <span class="hljs-comment">//Include only modified data. Default is true.</span>
+        <span class="hljs-literal">true</span>,
+        <span class="hljs-comment">//Set data to unmodified after stringification. Default is true.</span>
+        <span class="hljs-literal">true</span>
     );
-    console.log('changes:', str);
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'changes:'</span>, str);
 
-    //I am live. Continue listening.
-    return true;
+    <span class="hljs-comment">//I am live. Continue listening.</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
 });
 
-//Start the interval.
-intervalId = setInterval(() =&gt; {
+<span class="hljs-comment">//Start the interval.</span>
+intervalId = <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
 
-    //Increment the count property.
-    context.count++;
-}, 1000);
+    <span class="hljs-comment">//Increment the count property.</span>
+    context.<span class="hljs-property">count</span>++;
+}, <span class="hljs-number">1000</span>);
 </code></pre>
-<h3 id="browser-example">browser example:</h3>
-<pre><code class="language-html">&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;utf-8&quot; /&gt;
-    &lt;title&gt;data-context&lt;/title&gt;
-    &lt;!-- STEP 1. Import the module. Import for an HTML page hosted on the server. --&gt;
-    &lt;script type=&quot;text/javascript&quot; src=&quot;./index.js&quot;&gt;&lt;/script&gt;
-    &lt;!-- STEP 1. Import the module. Import for a standalone HTML page. --&gt;
-    &lt;!--&lt;script src=&quot;https://cdn.jsdelivr.net/npm/data-context&quot;&gt;&lt;/script&gt;--&gt;
-    &lt;script&gt;
+<h3 data-line="223" class="code-line" dir="auto" id="browser-example" tabindex="-1">browser example:</h3>
+<pre><code data-line="224" class="code-line language-html" dir="auto"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">"utf-8"</span> /&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>data-context<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- STEP 1. Import the module. Import for an HTML page hosted on the server. --&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"./index.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- STEP 1. Import the module. Import for a standalone HTML page. --&gt;</span>
+    <span class="hljs-comment">&lt;!--&lt;script src="https://cdn.jsdelivr.net/npm/data-context"&gt;&lt;/script&gt;--&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="language-javascript"><span class="hljs-meta">
 
-        'use strict';
+        'use strict'</span>;
 
-        // STEP 3. Import the module.
-        importModules(['data-context'], function (DC) {
+        <span class="hljs-comment">// STEP 3. Import the module.</span>
+        importModules([<span class="hljs-string">'data-context'</span>], <span class="hljs-keyword">function</span> (<span class="hljs-params">DC</span>) {
 
-            var { createDataContext, parse } = DC;
+            <span class="hljs-keyword">var</span> { createDataContext, parse } = <span class="hljs-variable constant_">DC</span>;
 
-            //Create a JSON string.
-            var strJSON = `{
-                &quot;count&quot;: 0
-            }`;
+            <span class="hljs-comment">//Create a JSON string.</span>
+            <span class="hljs-keyword">var</span> strJSON = <span class="hljs-string">`{
+                "count": 0
+            }`</span>;
 
-            //Interval id.
-            var intervalId = null;
+            <span class="hljs-comment">//Interval id.</span>
+            <span class="hljs-keyword">var</span> intervalId = <span class="hljs-literal">null</span>;
 
-            //Create data context.
-            const context = parse(
-                //Parse the JSON string.
+            <span class="hljs-comment">//Create data context.</span>
+            <span class="hljs-keyword">const</span> context = <span class="hljs-title function_">parse</span>(
+                <span class="hljs-comment">//Parse the JSON string.</span>
                 strJSON,
-                //Reviver function. Create data context.
+                <span class="hljs-comment">//Reviver function. Create data context.</span>
                 createDataContext
             );
 
-            //Listen to the count property.
-            context.on('count', (event) =&gt; {
+            <span class="hljs-comment">//Listen to the count property.</span>
+            context.<span class="hljs-title function_">on</span>(<span class="hljs-string">'count'</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
 
-                console.log('event:', event);
+                <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'event:'</span>, event);
 
-                if (event.newValue &gt; 10) {
+                <span class="hljs-keyword">if</span> (event.<span class="hljs-property">newValue</span> &gt; <span class="hljs-number">10</span>) {
 
-                    console.log('I am dead.');
-                    clearInterval(intervalId);
+                    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'I am dead.'</span>);
+                    <span class="hljs-built_in">clearInterval</span>(intervalId);
 
-                    //I am dead. Remove listener.
-                    return false;
+                    <span class="hljs-comment">//I am dead. Remove listener.</span>
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
                 }
 
-                //I am live. Continue listening.
-                return true;
+                <span class="hljs-comment">//I am live. Continue listening.</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
             });
 
-            context.on('-change', (event) =&gt; {
+            context.<span class="hljs-title function_">on</span>(<span class="hljs-string">'-change'</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
 
-                //Stringify the changes.
-                var str = context.stringifyChanges(
-                    //Reviver function. Default is null.
-                    null,
-                    //Indentation. Default is 0.
-                    4,
-                    //Include only modified data. Default is true.
-                    true,
-                    //Set data to unmodified after stringification. Default is true.
-                    true
+                <span class="hljs-comment">//Stringify the changes.</span>
+                <span class="hljs-keyword">var</span> str = context.<span class="hljs-title function_">stringifyChanges</span>(
+                    <span class="hljs-comment">//Reviver function. Default is null.</span>
+                    <span class="hljs-literal">null</span>,
+                    <span class="hljs-comment">//Indentation. Default is 0.</span>
+                    <span class="hljs-number">4</span>,
+                    <span class="hljs-comment">//Include only modified data. Default is true.</span>
+                    <span class="hljs-literal">true</span>,
+                    <span class="hljs-comment">//Set data to unmodified after stringification. Default is true.</span>
+                    <span class="hljs-literal">true</span>
                 );
-                console.log('changes:', str);
+                <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'changes:'</span>, str);
 
-                //I am live. Continue listening.
-                return true;
+                <span class="hljs-comment">//I am live. Continue listening.</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
             });
 
-            //Start the interval.
-            intervalId = setInterval(() =&gt; {
+            <span class="hljs-comment">//Start the interval.</span>
+            intervalId = <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
 
-                //Increment the count property.
-                context.count++;
-            }, 1000);
+                <span class="hljs-comment">//Increment the count property.</span>
+                context.<span class="hljs-property">count</span>++;
+            }, <span class="hljs-number">1000</span>);
         });
 
-        // STEP 2. Add module import function.
-        /**
+        <span class="hljs-comment">// STEP 2. Add module import function.</span>
+        <span class="hljs-comment">/**
          * Module import function.
-         * @param {string[]} importIdentifierArray Modules to import.
-         * @param {(...importModules:any[]) =&gt; void} callback Callback function.
-         */
-        function importModules(importIdentifierArray, callback) {
+         * <span class="hljs-doctag">@param</span> {<span class="hljs-type">string[]</span>} importIdentifierArray Modules to import.
+         * <span class="hljs-doctag">@param</span> {<span class="hljs-type">(...importModules:any[]) =&gt; void</span>} callback Callback function.
+         */</span>
+        <span class="hljs-keyword">function</span> <span class="hljs-title function_">importModules</span>(<span class="hljs-params">importIdentifierArray, callback</span>) {
 
-            var thisScope = &quot;undefined&quot; != typeof globalThis
+            <span class="hljs-keyword">var</span> thisScope = <span class="hljs-string">"undefined"</span> != <span class="hljs-keyword">typeof</span> globalThis
                 ? globalThis
-                : &quot;undefined&quot; != typeof window
-                    ? window
-                    : &quot;undefined&quot; != typeof global
-                        ? global : &quot;undefined&quot; != typeof self
+                : <span class="hljs-string">"undefined"</span> != <span class="hljs-keyword">typeof</span> <span class="hljs-variable language_">window</span>
+                    ? <span class="hljs-variable language_">window</span>
+                    : <span class="hljs-string">"undefined"</span> != <span class="hljs-keyword">typeof</span> <span class="hljs-variable language_">global</span>
+                        ? <span class="hljs-variable language_">global</span> : <span class="hljs-string">"undefined"</span> != <span class="hljs-keyword">typeof</span> self
                             ? self
                             : {};
 
-            if (!thisScope.modules) { thisScope.modules = {}; }
+            <span class="hljs-keyword">if</span> (!thisScope.<span class="hljs-property">modules</span>) { thisScope.<span class="hljs-property">modules</span> = {}; }
 
-            waitModules();
+            <span class="hljs-title function_">waitModules</span>();
 
 
-            function waitModules() {
+            <span class="hljs-keyword">function</span> <span class="hljs-title function_">waitModules</span>(<span class="hljs-params"></span>) {
 
-                if (importIdentifierArray.length) {
+                <span class="hljs-keyword">if</span> (importIdentifierArray.<span class="hljs-property">length</span>) {
 
-                    for (let i = 0; i &lt; importIdentifierArray.length; i++) {
+                    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; importIdentifierArray.<span class="hljs-property">length</span>; i++) {
 
-                        if (!thisScope.modules[importIdentifierArray[i]]) { return setTimeout(waitModules, 10); }
+                        <span class="hljs-keyword">if</span> (!thisScope.<span class="hljs-property">modules</span>[importIdentifierArray[i]]) { <span class="hljs-keyword">return</span> <span class="hljs-built_in">setTimeout</span>(waitModules, <span class="hljs-number">10</span>); }
                     }
                 }
 
-                callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope.modules[id]; }));
+                callback.<span class="hljs-title function_">call</span>(thisScope, ...importIdentifierArray.<span class="hljs-title function_">map</span>(<span class="hljs-keyword">function</span> (<span class="hljs-params">id</span>) { <span class="hljs-keyword">return</span> thisScope.<span class="hljs-property">modules</span>[id]; }));
             }
         }
-    &lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h3&gt;Example 'data-context'&lt;/h3&gt;
-    &lt;p&gt;Press F12. Console results.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+    </span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h3</span>&gt;</span>Example 'data-context'<span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Press F12. Console results.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
 </code></pre>
-<h2 id="references">References</h2>
-<h3 id="createdatacontextdata-propertyname-parent"><em>createDataContext(data, propertyName, parent)</em></h3>
-<p>Create a data context from the data.</p>
-<p><strong>Type:</strong> <code>function</code></p>
-<p><strong>Parameters:</strong></p>
-<ul>
-<li><code>data</code>  - The data object.</li>
-<li><code>propertyName</code>  - The property name where the data is located. Default is null.</li>
-<li><code>parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
+<h2 data-line="348" class="code-line" dir="auto" id="-api-reference" tabindex="-1">📖 API Reference</h2>
+<ul data-line="350" class="code-line" dir="auto">
+<li data-line="350" class="code-line" dir="auto"><a href="#createdatacontextdata-propertyname-parent" data-href="#createdatacontextdata-propertyname-parent">createDataContext(data, propertyName, parent)</a></li>
+<li data-line="351" class="code-line" dir="auto"><a href="#datacontext" data-href="#datacontext">DataContext</a></li>
+<li data-line="352" class="code-line" dir="auto"><a href="#eventlistenerevent" data-href="#eventlistenerevent">EventListener(event)</a></li>
+<li data-line="353" class="code-line" dir="auto"><a href="#eventobject" data-href="#eventobject">EventObject</a></li>
+<li data-line="354" class="code-line" dir="auto"><a href="#propertyname" data-href="#propertyname">PropertyName</a></li>
+<li data-line="355" class="code-line" dir="auto"><a href="#reviver" data-href="#reviver">Reviver</a></li>
 </ul>
-<p><strong>Returns:</strong></p>
-<ul>
-<li>{<a href="#datacontext">DataContext</a>} - The data context.</li>
+<div data-line="357" class="code-line" dir="auto"></div>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<h3 data-line="359" class="code-line" dir="auto" id="createdatacontextdata-propertyname-parent" tabindex="-1"><em>createDataContext(data, propertyName, parent)</em></h3>
+<p data-line="361" class="code-line" dir="auto">Create a data context from the data.</p>
+<p data-line="363" class="code-line" dir="auto"><strong>Type:</strong> <code>function</code></p>
+<p data-line="365" class="code-line" dir="auto"><strong>Parameters:</strong></p>
+<ul data-line="366" class="code-line" dir="auto">
+<li data-line="366" class="code-line" dir="auto"><code>data</code> {any} - The data object.</li>
+<li data-line="367" class="code-line" dir="auto"><code>propertyName</code> {string} - The property name where the data is located. Default is null.</li>
+<li data-line="368" class="code-line" dir="auto"><code>parent</code> {<a href="#datacontext" data-href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
 </ul>
-<p><strong>Static Properties:</strong></p>
-<ul>
-<li><code>ignoreMetadata</code>  - Global flag to ignore metadata and comments. Default is false.</li>
-<li><code>createDataContext</code> {(data: any, propertyName?: string, parent?: <a href="#datacontext">DataContext</a>) =&gt; <a href="#datacontext">DataContext</a>} - Create a data context from the data.</li>
-<li><code>parse</code> {(str: string, reviver?: <a href="#reviver">Reviver</a>) =&gt; <a href="#datacontext">DataContext</a>} - Parse JSON string to the data context.</li>
-<li><code>stringify</code> {(data: any, replacer?: Replacer, space?: number) =&gt; string} - Stringify the data to JSON string.</li>
+<p data-line="370" class="code-line" dir="auto"><strong>Returns:</strong></p>
+<ul data-line="371" class="code-line" dir="auto">
+<li data-line="371" class="code-line" dir="auto">{<a href="#datacontext" data-href="#datacontext">DataContext</a>} - The data context.</li>
 </ul>
-<h3 id="datacontext"><em>DataContext</em></h3>
-<p>The data context Proxy object.</p>
-<p><strong>Type:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy"><code>Proxy</code></a></p>
-<p><strong>Properties:</strong></p>
-<ul>
-<li><code>_isDataContext</code>  - The flag that indicates that the object is a data context. Default is true.</li>
-<li><code>_isModified</code>  - The flag that indicates that the object is modified. Default is false.</li>
-<li><code>_modified</code> {Array&lt;<a href="#propertyname">PropertyName</a>&gt;} - The array of modified properties.</li>
-<li><code>_propertyName</code>  - The property name where the data is located. Default is null.</li>
-<li><code>_parent</code> {<a href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
-<li><code>_events</code> {Map&lt;string, <a href="#eventlistenerevent">EventListener</a>&gt;} - The map of event listeners.</li>
-<li><code>isChanged</code>  - The flag that indicates that the object is changed.</li>
+<p data-line="373" class="code-line" dir="auto"><strong>Static Properties:</strong></p>
+<ul data-line="374" class="code-line" dir="auto">
+<li data-line="374" class="code-line" dir="auto"><code>ignoreMetadata</code> {boolean} - Global flag to ignore metadata and comments. Default is false.</li>
+<li data-line="375" class="code-line" dir="auto"><code>createDataContext</code> {(data: any, propertyName?: string, parent?: <a href="#datacontext" data-href="#datacontext">DataContext</a>) =&gt; <a href="#datacontext" data-href="#datacontext">DataContext</a>} - Create a data context from the data.</li>
+<li data-line="376" class="code-line" dir="auto"><code>parse</code> {(str: string, reviver?: <a href="#reviver" data-href="#reviver">Reviver</a>) =&gt; <a href="#datacontext" data-href="#datacontext">DataContext</a>} - Parse JSON string to the data context.</li>
+<li data-line="377" class="code-line" dir="auto"><code>stringify</code> {(data: any, replacer?: Replacer, space?: number) =&gt; string} - Stringify the data to JSON string.</li>
 </ul>
-<p><strong>Methods:</strong></p>
-<ul>
-<li><code>resetChanges</code> {() =&gt; void} - Set the current and child objects to status - unmodified. Must be used to start tracking changes again.</li>
-<li><code>once</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener that will be called only once.</li>
-<li><code>on</code> {(propertyName: <a href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener.</li>
-<li><code>emit</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event.</li>
-<li><code>emitToParent</code> {(eventName: string, event: <a href="#eventobject">EventObject</a>) =&gt; void} - Emit an event to the parent.</li>
-<li><code>toString</code> {() =&gt; string} - Returns the string representation of the data context.</li>
-<li><code>overwritingData</code> {(text: string, reviver?: <a href="#reviver">Reviver</a> ) =&gt; void} - Overwrite the data.</li>
-<li><code>stringifyChanges</code> {(reviver?: <a href="#reviver">Reviver</a>, space?: number|string, onlyModified?: boolean, setUnmodified?: boolean) =&gt; string} - Stringify the changes.</li>
+<div data-line="379" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="382" class="code-line" dir="auto">
+<h3 data-line="384" class="code-line" dir="auto" id="datacontext" tabindex="-1"><em>DataContext</em></h3>
+<p data-line="386" class="code-line" dir="auto">The data context Proxy object.</p>
+<p data-line="388" class="code-line" dir="auto"><strong>Type:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy" data-href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy"><code>Proxy</code></a></p>
+<p data-line="390" class="code-line" dir="auto"><strong>Properties:</strong></p>
+<ul data-line="391" class="code-line" dir="auto">
+<li data-line="391" class="code-line" dir="auto"><code>_isDataContext</code> {boolean} - The flag that indicates that the object is a data context. Default is true.</li>
+<li data-line="392" class="code-line" dir="auto"><code>_isModified</code> {boolean} - The flag that indicates that the object is modified. Default is false.</li>
+<li data-line="393" class="code-line" dir="auto"><code>_modified</code> {Array&lt;<a href="#propertyname" data-href="#propertyname">PropertyName</a>&gt;} - The array of modified properties.</li>
+<li data-line="394" class="code-line" dir="auto"><code>_propertyName</code> {string} - The property name where the data is located. Default is null.</li>
+<li data-line="395" class="code-line" dir="auto"><code>_parent</code> {<a href="#datacontext" data-href="#datacontext">DataContext</a>} - The parent data context. Default is null.</li>
+<li data-line="396" class="code-line" dir="auto"><code>_events</code> {Map&lt;string, <a href="#eventlistenerevent" data-href="#eventlistenerevent">EventListener</a>&gt;} - The map of event listeners.</li>
+<li data-line="397" class="code-line" dir="auto"><code>isChanged</code> {boolean} - The flag that indicates that the object is changed.</li>
 </ul>
-<h3 id="eventlistenerevent"><em>EventListener(event)</em></h3>
-<p>The event listener function.</p>
-<p><strong>Type:</strong> <code>function</code></p>
-<p><strong>Parameters:</strong></p>
-<ul>
-<li><code>event</code>  - The event object.</li>
+<p data-line="399" class="code-line" dir="auto"><strong>Methods:</strong></p>
+<ul data-line="400" class="code-line" dir="auto">
+<li data-line="400" class="code-line" dir="auto"><code>resetChanges</code> {() =&gt; void} - Set the current and child objects to status - unmodified. Must be used to start tracking changes again.</li>
+<li data-line="401" class="code-line" dir="auto"><code>once</code> {(propertyName: <a href="#propertyname" data-href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent" data-href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener that will be called only once.</li>
+<li data-line="402" class="code-line" dir="auto"><code>on</code> {(propertyName: <a href="#propertyname" data-href="#propertyname">PropertyName</a>, listener: <a href="#eventlistenerevent" data-href="#eventlistenerevent">EventListener</a>) =&gt; void} - Add an event listener.</li>
+<li data-line="403" class="code-line" dir="auto"><code>emit</code> {(eventName: string, event: <a href="#eventobject" data-href="#eventobject">EventObject</a>) =&gt; void} - Emit an event.</li>
+<li data-line="404" class="code-line" dir="auto"><code>emitToParent</code> {(eventName: string, event: <a href="#eventobject" data-href="#eventobject">EventObject</a>) =&gt; void} - Emit an event to the parent.</li>
+<li data-line="405" class="code-line" dir="auto"><code>toString</code> {() =&gt; string} - Returns the string representation of the data context.</li>
+<li data-line="406" class="code-line" dir="auto"><code>overwritingData</code> {(text: string, reviver?: <a href="#reviver" data-href="#reviver">Reviver</a> ) =&gt; void} - Overwrite the data.</li>
+<li data-line="407" class="code-line" dir="auto"><code>stringifyChanges</code> {(reviver?: <a href="#reviver" data-href="#reviver">Reviver</a>, space?: number|string, onlyModified?: boolean, setUnmodified?: boolean) =&gt; string} - Stringify the changes.</li>
 </ul>
-<p><strong>Returns:</strong></p>
-<ul>
-<li> - The flag that indicates that the listener is alive.</li>
+<div data-line="409" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="412" class="code-line" dir="auto">
+<h3 data-line="414" class="code-line" dir="auto" id="eventlistenerevent" tabindex="-1"><em>EventListener(event)</em></h3>
+<p data-line="416" class="code-line" dir="auto">The event listener function.</p>
+<p data-line="418" class="code-line" dir="auto"><strong>Type:</strong> <code>function</code></p>
+<p data-line="420" class="code-line" dir="auto"><strong>Parameters:</strong></p>
+<ul data-line="421" class="code-line" dir="auto">
+<li data-line="421" class="code-line" dir="auto"><code>event</code> {EventObject} - The event object.</li>
 </ul>
-<h3 id="eventobject"><em>EventObject</em></h3>
-<p>The event object.</p>
-<p><strong>Type:</strong> <code>object</code></p>
-<p><strong>Properties:</strong></p>
-<ul>
-<li><code>eventName</code>  - The event name. 'new' | 'set' | 'delete' | 'reposition' | '-change'
-<ul>
-<li>'new' It happens when a new property is added to the data context.</li>
-<li>'set' It happens when an existing property is updated.</li>
-<li>'delete' It happens when a property is removed from the data context.</li>
-<li>'reposition' It happens when the position of an item in an array changes.</li>
-<li>'change' It happens when any change occurs in the data context.</li>
+<p data-line="423" class="code-line" dir="auto"><strong>Returns:</strong></p>
+<ul data-line="424" class="code-line" dir="auto">
+<li data-line="424" class="code-line" dir="auto">{boolean} - The flag that indicates that the listener is alive.</li>
+</ul>
+<div data-line="426" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="429" class="code-line" dir="auto">
+<h3 data-line="431" class="code-line" dir="auto" id="eventobject" tabindex="-1"><em>EventObject</em></h3>
+<p data-line="433" class="code-line" dir="auto">The event object.</p>
+<p data-line="435" class="code-line" dir="auto"><strong>Type:</strong> <code>object</code></p>
+<p data-line="437" class="code-line" dir="auto"><strong>Properties:</strong></p>
+<ul data-line="438" class="code-line" dir="auto">
+<li data-line="438" class="code-line" dir="auto"><code>eventName</code> {string} - The event name. 'new' | 'set' | 'delete' | 'reposition' | '-change'
+<ul data-line="439" class="code-line" dir="auto">
+<li data-line="439" class="code-line" dir="auto">'new' It happens when a new property is added to the data context.</li>
+<li data-line="440" class="code-line" dir="auto">'set' It happens when an existing property is updated.</li>
+<li data-line="441" class="code-line" dir="auto">'delete' It happens when a property is removed from the data context.</li>
+<li data-line="442" class="code-line" dir="auto">'reposition' It happens when the position of an item in an array changes.</li>
+<li data-line="443" class="code-line" dir="auto">'change' It happens when any change occurs in the data context.</li>
 </ul>
 </li>
-<li><code>target</code>  - The target data context.</li>
-<li><code>propertyPath</code> {Array<PropertyName>} - The property path in array format.</li>
-<li><code>parent</code>  - The parent data context.</li>
-<li><code>oldValue</code>  - The old value.</li>
-<li><code>newValue</code>  - The new value.</li>
+<li data-line="444" class="code-line" dir="auto"><code>target</code> {DataContext} - The target data context.</li>
+<li data-line="445" class="code-line" dir="auto"><code>propertyPath</code> {Array<propertyname>} - The property path in array format.</propertyname></li>
+<li data-line="446" class="code-line" dir="auto"><code>parent</code> {DataContext} - The parent data context.</li>
+<li data-line="447" class="code-line" dir="auto"><code>oldValue</code> {any} - The old value.</li>
+<li data-line="448" class="code-line" dir="auto"><code>newValue</code> {any} - The new value.</li>
 </ul>
-<h3 id="propertyname"><em>PropertyName</em></h3>
-<p>The property name.</p>
-<p><strong>Type:</strong> <code>string</code></p>
-<h3 id="reviver"><em>Reviver</em></h3>
-<p>The reviver function.</p>
-<p><strong>Type:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#reviver"><code>reviver</code></a>
-or <a href="#createdatacontextdata-propertyname-parent"><code>createDataContext</code></a> or <code>null</code></p>
-<h2 id="license">License</h2>
-<p>This project is licensed under the MIT License.</p>
-<p>Copyright © Manuel Lõhmus</p>
-<p><a href="https://www.paypal.com/donate?hosted_button_id=TMZURGNWWYUBW"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" alt="Donate" /></a></p>
-<p>Donations are welcome and will go towards further development of this project.</p>
-<br>
-<br>
-<br>
-</div>
-</div>
-</div>
-
-    <script>
-        (function () {
-
-            'use strict';
-
-            var isIE = !!document.documentMode; // Detect IE
-
-            if (!isIE) {
-
-                // list-group style for headers
-                document.querySelectorAll('#list-headers a')
-                    .forEach(function (a) { a.classList.add('list-group-item', 'list-group-item-action') });
-            }
-        })();
-    </script>
-</body>
+<div data-line="450" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="453" class="code-line" dir="auto">
+<h3 data-line="455" class="code-line" dir="auto" id="propertyname" tabindex="-1"><em>PropertyName</em></h3>
+<p data-line="457" class="code-line" dir="auto">The property name.</p>
+<p data-line="459" class="code-line" dir="auto"><strong>Type:</strong> <code>string</code></p>
+<div data-line="461" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="464" class="code-line" dir="auto">
+<h3 data-line="466" class="code-line" dir="auto" id="reviver" tabindex="-1"><em>Reviver</em></h3>
+<p data-line="468" class="code-line" dir="auto">The reviver function.</p>
+<p data-line="470" class="code-line" dir="auto"><strong>Type:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#reviver" data-href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#reviver"><code>reviver</code></a>
+or <a href="#createdatacontextdata-propertyname-parent" data-href="#createdatacontextdata-propertyname-parent"><code>createDataContext</code></a> or <code>null</code></p>
+<div data-line="473" class="code-line" dir="auto"></div>
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="476" class="code-line" dir="auto">
+<h2 data-line="478" class="code-line" dir="auto" id="-license" tabindex="-1">📜 License</h2>
+<p data-line="480" class="code-line" dir="auto">This project is licensed under the MIT License.<br>
+Copyright © Manuel Lõhmus</p>
+<div data-line="483" class="code-line" dir="auto"></div>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+<hr data-line="485" class="code-line" dir="auto">
+    </body>
 </html>

@@ -52,6 +52,7 @@
   },
   "author": "Manuel Lõhmus",
   "files": [
+    "logo/logo-432x260.png",
     "index.d.ts",
     "index.js",
     "index.test.js",
@@ -65,6 +66,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/manuel-lohmus/data-context.git"
-  },
-  "funding": "https://manuel-lohmus.github.io/data-context/README.html#license"
+  }
 }

@@ -2,12 +2,12 @@
 
 "use strict";
 
-importModules(["data-context"], function (DC) {
+importModules(["data-context"], async function (DC) {
 
     var { parse, stringify } = DC;
 
     /***** Init TESTS *********************************************************/
-    testRunner('Init TESTS                    ', { skip: false }, (test) => {
+    await testRunner('Init TESTS                    ', { skip: false }, (test) => {
         // UNDEFINED
         test('DC(undefined)                 ', { skip: false }, (check) => {
             return check(DC(undefined)).mustBe(undefined);
@@ -74,7 +74,7 @@ importModules(["data-context"], function (DC) {
         });
     });
     /***** Event Emitter TESTS ************************************************/
-    testRunner('Event Emitter TESTS           ', { skip: false }, (test) => {
+    await testRunner('Event Emitter TESTS           ', { skip: false }, (test) => {
         test('VALUE set_event                 ', { skip: false }, (check) => {
             var parent = DC({});
             var arr = DC([0]);
@@ -153,7 +153,7 @@ importModules(["data-context"], function (DC) {
         });
     });
     /***** Parse TESTS ********************************************************/
-    testRunner('Parse TESTS                   ', { skip: false }, (test) => {
+    await testRunner('Parse TESTS                   ', { skip: false }, (test) => {
         test('parse(undefined)                ', { skip: false }, (check) => {
             return check(parse(undefined)).mustBe(undefined);
         });
@@ -242,7 +242,7 @@ importModules(["data-context"], function (DC) {
         });
     });
     /***** Stringify TESTS ****************************************************/
-    testRunner('Stringify TESTS               ', { skip: false }, (test) => {
+    await testRunner('Stringify TESTS               ', { skip: false }, (test) => {
         test('stringify(undefined)            ', { skip: false }, (check) => {
             return check(stringify(undefined)).mustBe(undefined);
         });
@@ -367,7 +367,7 @@ importModules(["data-context"], function (DC) {
         });
     });
     /***** Complex TESTS ******************************************************/
-    testRunner('Complex TESTS                 ', { skip: false }, (test) => {
+    await testRunner('Complex TESTS                 ', { skip: false }, (test) => {
         test('parse - stringify //metadata    ', { skip: false }, (check) => {
             var json = `{
     "test": {
@@ -528,346 +528,6 @@ importModules(["data-context"], function (DC) {
 
 
 /**
- * Test runner. Function to run unit tests in the console.
- * @author Manuel Lõhmus (MIT License)
- * @version 1.1.5
- * [2024-12-29] adde    d functionality to select tests by ID in the command line arguments (e.g. --testIDs=1 2 3)
- * @example `npm test '--'` or `node index.test.js`
- * @example `npm test '--' --help` or `node index.test.js --help`
- * @example `npm test '--' --testIDs=1 2 3` or `node index.test.js --testIDs=1 2 3`
- * @param {string} runnerName Test runner name.
- * @param {{skip:boolean}} options Test runner options.
- * @param {(test:Test)=>void} cb Callback function to run the unit tests.
- * @returns {boolean} If the tests are OK
- * @example testRunner('Module name', { skip: false },  function (test) {...});
- * 
- * @callback Test Unit test callback function
- * @param {string} testName Test name.
- * @param {{skip:boolean,timeout:number}} options Test options. (default: {skip:false,timeout:3000})))
- * @param {(check:Check,done:Done)=>void} fn Test function. Function parameters: check, done. `check` is used to check the test result. `done` is used to end the test.
- * @returns {void}
- * @example test("Test name", {skip:false,timeout:3000}, function(check,done){...});
- * @example test("Test name", function(check,done){...});
- * @example test("Test name", {skip:checkableObject === undefined}, function(check,done){...});
- * 
- * @callback Check Check function to check the test result.
- * @param {string} label Value name. Opional.
- * @param {any} value Value to check.
- * @returns {Validator} 
- * @example check('name', value).mustBe(true);
- * @example check('name', value).mustNotBe(false);
- * @example check('name', value).mustBe(true).done();
- * @example check('name', value).mustBe(true).mustNotBe(false).done();
- * 
- * @callback Done Callback function to end the test.
- * @param {Error} err Error message. If the error message is empty, the test is considered successful.
- * @returns {void}
- * 
- * @typedef Validator
- * @property {Check} check Check function to check the test result.
- * @property {(value:any)=>Validator} mustBe Check if the value is equal to the specified value.
- * @property {(value:any)=>Validator} mustNotBe Check if the value is not equal to the specified value.
- * @property {(value:any)=>Validator} mustInclude Check if the value is included to the specified value.
- * @property {Done} done Callback function to end the test.
- */
-function testRunner(runnerName, options, cb) {
-
-    var globalScope = this || globalThis;
-
-    globalScope?.process?.on('uncaughtException', function noop() { });
-
-    testRunner.testRunnerOK = true;
-    clearTimeout(testRunner.exitTimeoutID);
-
-    var stdout = {},
-        timeouts = {},
-        countStarted = 0,
-        countCompleted = 0,
-        testsStarted = false,
-        testRunnerOK = true,
-        strSKIP = "\t\t[\x1b[100m\x1b[97m  SKIP  \x1b[0m]",
-        strTestsERR = "[\x1b[41m\x1b[97m The tests failed! \x1b[0m]",
-        strTestsDONE = "[\x1b[42m\x1b[97m The tests are done! \x1b[0m]",
-        { help, testID } = arg_options();
-
-    if (help !== undefined) {
-
-        console.log(`
-npm test '--' [OPTION1=VALUE1] [OPTION2=VALUE2] ...
-or
-node index.test.js [OPTION1=VALUE1] [OPTION2=VALUE2] ...
-
-The following options are supported:
-    --help      Display this help
-    --testID   Number of the test to run (e.g. node index.test.js --testID=1 --testID=2 --testID=3)
-    `);
-
-        if (globalScope?.process?.argv[1].endsWith(".js")) { exitPressKey(); }
-        else { globalScope?.process?.exit(0); }
-
-        return;
-    }
-
-    if (!Array.isArray(testID)) { testID = testID ? [testID] : []; }
-
-    //skip all tests
-    if (options?.skip) {
-
-        testsStarted = "SKIP";
-        if (runnerName) { log(0, "SKIP  > ", runnerName, strSKIP); }
-        testCompleted();
-
-        return testRunnerOK;
-    }
-
-
-    if (runnerName) { log(0, "START > ", runnerName); }
-    cb(test);
-    testsStarted = true;
-    testCompleted();
-
-    return testRunnerOK;
-
-    function log() {
-
-        var line = "";
-
-        for (let i = 1; i < arguments.length; i++) {
-
-            line += arguments[i];
-        }
-
-        if (stdout[arguments[0]]) {
-
-            stdout[arguments[0]] += line + "\n";
-        }
-        else {
-
-            stdout[arguments[0]] = line + "\n";
-        }
-    }
-    function print_stdout() {
-
-        console.log();
-        console.log(
-            Object.keys(stdout).reduce((output, value, i) => output += stdout[i], '')
-        );
-    }
-    /**
-     * Unit test function.
-     * @type {Test} 
-     */
-    function test(testName, options, fn) {
-
-        var startTime, endTime,
-            id = ++countStarted,
-            testOK = true,
-            label = "  " + id + ".\tTEST > " + testName + "\t",
-            strOK = "\t[\x1b[42m\x1b[97m   OK   \x1b[0m]",
-            strERR = "\t[\x1b[41m\x1b[97m FAILED \x1b[0m] -> ";
-
-        //skip
-        if (options?.skip || testID && testID.length && !testID.includes(id)) {
-
-            log(id, label, "\t", strSKIP);
-            testCompleted();
-
-            return;
-        }
-        //timeout 
-        timeouts[id] = setTimeout(function () {
-            done("timeout");
-        }, options?.timeout || 3000);
-
-        startTime = performance.now();
-
-        try {
-            if (fn(check, done)) { done(); }
-
-        }
-        catch (err) { done(err); }
-
-        /**
-         *  Callback function to end the test.
-         * @type {Done}
-         */
-        function done(err = '') {
-
-            endTime = performance.now();
-            if (err) { testRunnerOK = testOK = false; }
-            if (err || testOK)
-                log(id, label, ": ", (endTime - startTime).toFixed(2), "ms\t", err ? strERR : strOK, err || "");
-            if (timeouts[id]) { testCompleted(); }
-            clearTimeout(timeouts[id]);
-            delete timeouts[id];
-        }
-        /**
-         * Check function to check the test result.
-         * @type {Check}
-         */
-        function check(label, value) {
-
-            if (arguments.length === 1) { value = label; label = 'returned'; }
-            if (label === undefined) { label = 'returned'; }
-
-            /**
-             * Selection fuctions to check.
-             * @type {Validator}
-             */
-            return {
-
-                check,
-
-                mustBe: function mustBe(mustBe) {
-                    if (value !== mustBe) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must be \x1b[0m '" + mustBe + "'"); }
-                    return this;
-                },
-
-                mustNotBe: function mustNotBe(mustNotBe) {
-                    if (value === mustNotBe) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must not be \x1b[0m '" + mustNotBe + "'"); }
-                    return this;
-                },
-
-                mustInclude: function mustInclude(mustInclude) {
-                    if (!value?.includes || !value.includes(mustInclude)) { done("\x1b[44m\x1b[97m " + label + " \x1b[0m '" + value + "' \x1b[44m\x1b[97m must include \x1b[0m '" + mustInclude + "'"); }
-                    return this;
-                },
-
-                done
-            };
-        }
-    }
-    function testCompleted() {
-
-        countCompleted++;
-
-        if (!testsStarted || countStarted >= countCompleted) { return; }
-
-        if (runnerName) {
-
-            if (testsStarted === "SKIP") {
-
-                print_stdout();
-            }
-            else if (!testRunnerOK) {
-                log(++countStarted, "END   > " + runnerName + "\t" + strTestsERR);
-                print_stdout();
-            }
-            else {
-                log(++countStarted, "END   > ", runnerName, "\t", strTestsDONE);
-                print_stdout();
-            }
-
-            globalScope?.process?.removeAllListeners('uncaughtException');
-
-            if (globalScope?.process?.argv[1].endsWith(".js")) {
-
-                exitPressKey();
-            }
-            else if (globalScope?.process) {
-
-                if (!testRunnerOK) { testRunner.testRunnerOK = false; }
-
-                testRunner.exitTimeoutID = setTimeout(function (exit) {
-
-                    exit(testRunner.testRunnerOK ? 0 : 1);
-
-                }, 100, globalScope?.process?.exit);
-            }
-        }
-    }
-
-    function exitPressKey() {
-
-        globalScope?.process?.stdin.setRawMode(true);
-        globalScope?.process?.stdin.resume();
-        globalScope?.process?.stdin.on('data', globalScope?.process?.exit.bind(globalScope?.process, testRunnerOK ? 0 : 1));
-
-        console.log('Press any key to exit');
-    }
-
-    function arg_options() {
-
-        if ("undefined" === typeof globalScope?.process) { return {}; }
-
-        var isKey = false,
-            key = '',
-            values,
-            args = globalScope?.process?.argv
-                .slice(2)
-                .join('')
-                .split('')
-                .reduce(function (args, c) {
-
-
-                    if (c === '-') {
-                        if (isKey && key && !args[key]) { args[key] = ['true']; }
-                        isKey = true;
-                        key = '';
-                        return args;
-                    }
-
-                    if (c === '=') {
-                        isKey = false;
-                        if (!args[key]) { args[key] = []; }
-                        values = args[key];
-                        values.push('');
-                        return args;
-                    }
-
-                    if (isKey && /\s/.test(c)) {
-                        return args;
-                    }
-
-                    if (isKey) {
-                        key += c;
-                        return args;
-                    }
-
-                    values[values.length - 1] += c;
-
-                    return args;
-                }, {});
-
-        if (isKey && key && !args[key]) { args[key] = ['true']; }
-
-        Object.keys(args).forEach((k) => {
-
-            if (!args[k].length) {
-
-                args[k] = '';
-
-                return;
-            }
-
-            if (args[k].length === 1) {
-
-                args[k] = convertValue(args[k][0].trim());
-
-                return;
-            }
-
-            args[k] = args[k].map((s) => {
-
-                return convertValue(s.trim());
-            });
-        });
-
-        return args;
-
-        function convertValue(val) {
-
-            if (val === 'null') { return null; }
-            if (val === 'true') { return true; }
-            if (val === 'false') { return false; }
-            if (!isNaN(Number(val))) { return Number(val); }
-
-            return val;
-        }
-    }
-}
-
-/**
  * Import modules.
  * @param {string[]} importIdentifierArray Modules to import.
  * @param {(...importModules:any[]) => void} callback Callback function.
@@ -911,5 +571,447 @@ function importModules(importIdentifierArray, callback) {
         }
 
         callback.call(thisScope, ...importIdentifierArray.map(function (id) { return thisScope.modules[id]; }));
+    }
+}
+
+/**
+ * @typedef Options - Options object for the test runner.
+ * @type {object}
+ * @property {string} [controlServerSocketPath="/tmp/test-runner-lite.sock"] - Path to the control server socket. Used for inter-process communication between primary and worker processes (on Node.js).
+ * @property {boolean} [workers=false] - Allows tests to be run in a worker process. Does not create in a worker process.
+ * @property {number} [timeout=5000] - Default timeout for tests in milliseconds.
+ * @property {boolean} [json=false] - Whether to output results in JSON format.
+ * @property {boolean} [raw=false] - Whether to disable colored output.
+ * @property {boolean} [silent=false] - Whether to suppress console output.
+ * @property {boolean} [bail=false] - Whether to stop on the first test failure.
+ * @property {boolean} [noExit=false] - Whether to prevent exiting the process on completion.
+ * @property {string[]} [testIDs] - Array of test IDs to run. If provided, only these tests will be executed.
+ * @property {function} [onComplete] - Callback function to be called when all tests are complete. Receives the summary object as an argument.
+ */
+
+/**
+ * @typedef Done - Function to call when the test is complete. Can be called with an error message to indicate failure.
+ * @type {function}
+ * @param {string} [err] - Optional error message. If provided, the test is marked as failed.
+ * @returns {void}
+ */
+
+/**
+ * @typedef Check - Object with assertion methods.
+ * @type {object}
+ * @property {function} mustBe - Asserts that the value is equal to one of the provided arguments.
+ * @property {function} mustNotBe - Asserts that the value is not equal to any of the provided arguments.
+ * @property {function} mustInclude - Asserts that the value includes the provided argument.
+ * @property {function} mustBeDefined - Asserts that the value is defined.
+ * @property {function} mustBeUndefined - Asserts that the value is undefined.
+ * @property {function} mustBeNull - Asserts that the value is null.
+ * @property {function} mustBeNotNull - Asserts that the value is not null.
+ * @property {function} mustBeTrue - Asserts that the value is true.
+ * @property {function} mustBeFalse - Asserts that the value is false.
+ * @property {function} mustBeObject - Asserts that the value is an object.
+ * @property {function} mustBeArray - Asserts that the value is an array.
+ * @property {function} mustBeString - Asserts that the value is a string.
+ * @property {function} mustBeNumber - Asserts that the value is a number.
+ * @property {function} mustBeFunction - Asserts that the value is a function.
+ * @property {function} mustBeGreaterThan - Asserts that the value is greater than the provided argument.
+ * @property {function} mustBeLessThan - Asserts that the value is less than the provided argument.
+ * @property {function} mustBeGreaterOrEqual - Asserts that the value is greater than or equal to the provided argument.
+ * @property {function} mustBeLessOrEqual - Asserts that the value is less than or equal to the provided argument.
+ * @property {function} mustMatch - Asserts that the value matches the provided regular expression.
+ * @property {function} mustBeInstanceOf - Asserts that the value is an instance of the provided type.
+ * @property {function} toBe - Alias for mustBe.
+ * @property {function} notToBe - Alias for mustNotBe.
+ * @property {function} toInclude - Alias for mustInclude.
+ * @property {function} toBeDefined - Alias for mustBeDefined.
+ * @property {function} toBeUndefined - Alias for mustBeUndefined.
+ * @property {function} toBeNull - Alias for mustBeNull.
+ * @property {function} toBeNotNull - Alias for mustBeNotNull.
+ * @property {function} toBeTrue - Alias for mustBeTrue.
+ * @property {function} toBeFalse - Alias for mustBeFalse.
+ * @property {function} toBeObject - Alias for mustBeObject.
+ * @property {function} toBeArray - Alias for mustBeArray.
+ * @property {function} toBeString - Alias for mustBeString.
+ * @property {function} toBeNumber - Alias for mustBeNumber.
+ * @property {function} toBeFunction - Alias for mustBeFunction.
+ * @property {function} toBeGreaterThan - Alias for mustBeGreaterThan.
+ * @property {function} toBeLessThan - Alias for mustBeLessThan.
+ * @property {function} toBeGreaterOrEqual - Alias for mustBeGreaterOrEqual.
+ * @property {function} toBeLessOrEqual - Alias for mustBeLessOrEqual.
+ * @property {function} toMatch - Alias for mustMatch.
+ * @property {function} toBeInstanceOf - Alias for mustBeInstanceOf.
+ * @property {function} truthy - Asserts that the value is truthy.
+ * @property {function} falsy - Asserts that the value is falsy.
+ * @property {Done} done - Function to call when the test is complete or to indicate failure.
+ */
+
+/**
+ * @typedef TestCallback - Callback function for defining a test.
+ * @type {function}
+ * @param {Check} check - Object with assertion methods.
+ * @param {function} done - Function to call when the test is complete. Can be called with an error message to indicate failure.
+ * @param {boolean} isPrimary - Whether the current process is the primary process.
+ */
+
+/**
+ * @typedef TestFunction - Function to define a test.
+ * @type {function}
+ * @param {string} name - Name of the test.
+ * @param {Options|function} [opts] - Options object or test function if no options are provided.
+ * @param {TestCallback} fn - Test callback function.
+ */
+
+/**
+ * @typedef SuiteCallback - Callback function for defining tests.
+ * @type {function}
+ * @param {TestFunction} test - Function to define a test.
+ * @param {boolean} isPrimary - Whether the current process is the primary process.
+ * @param {boolean} isWorker - Whether the current process is a worker process.
+ */
+
+/**
+ * Version number: 1.1.0
+ * Test runner. Simple test execution framework for Node.js and the browser.
+ * Can run tests in the primary process and worker processes (if workers are supported).
+ * Collects and reports test results.
+ * Uses a control server to collect results from worker processes.
+ * @module test-runner-lite
+ * @param {string} runnerName - Name of the test runner.
+ * @param {Options|function} options - Options object or suite function if no options are provided.
+ * @param {SuiteCallback} [suite] - Suite callback function to define tests.
+ * @returns {Promise<object>} Promise that resolves with the test summary or rejects if any test fails.
+ * @example
+ * const testRunner = require('test-runner-lite');
+ * 
+ * testRunner("My Test Suite", { workers: true, timeout: 2000 }, (test, isPrimary, isWorker) => {
+ *   test("Primary process test", { off: !isPrimary }, (check, done) => {
+ *     check("typeof", typeof someModule).mustBe("object").done();
+ *   });
+ *   test("Worker process test", { off: !isWorker }, (check, done) => {
+ *     check("isWorker", isWorker).mustBe(true).done('stop');
+ *   });
+ *   test("Universal test", (check, done) => {
+ *     check("platform", process.platform).mustInclude("linux").done();
+ *   });
+ * });
+ *   .then((summary) => {
+ *     console.log("All tests completed", summary);
+ *   })
+ *   .catch(err => { throw err; });
+ */
+function testRunner(runnerName, options, suite) {
+
+    if (typeof options === 'function') { suite = options; options = {}; }
+
+    let numberOfTests = 0, ok = true, endTimer = null, resolveRunnerPromise, rejectRunnerPromise;
+    const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined',
+        color = makeColors(isBrowser || process.stdout.isTTY && !options.raw),
+        isPrimary = typeof process === 'undefined' || !process.send, // process is undefined in the browser, process.send is undefined in the primary thread
+        primaryOnly = !options.workers,
+        printToConsole = !options.silent && !options.json,
+        startTime = performance.now(),
+        tests = [],
+        summary = {
+            runner: runnerName,
+            ok,
+            total: 0,
+            passed: 0,
+            failed: 0,
+            skipped: 0,
+            turned_off: 0,
+            time_ms: NaN,
+            results: [],
+        },
+        controlServer = createControlServer(startTesting);
+
+    // if controlServer is created, startTesting() will be called when all workers are connected
+    // if controlServer is not created (e.g. in the browser or if workers are not used), startTesting() is called immediately
+    if (!controlServer || isBrowser) { startTesting(); }
+
+    return new Promise((resolve, reject) => { rejectRunnerPromise = reject; resolveRunnerPromise = resolve; });
+
+
+
+    function startTesting() {
+
+        // START print
+        if (isPrimary) {
+            if (printToConsole) console.log(`START > ${runnerName}`);
+        }
+
+        suite(testFn, isPrimary, !isPrimary);
+        finish();
+    }
+    async function testFn(name, opts, fn) {
+
+        if (!ok && options.bail) { return; }
+        if (typeof opts === 'function') { fn = opts; opts = {}; }
+
+        const test = {
+            id: ++numberOfTests,
+            name,
+            status: 'OFF',
+            time_ms: NaN,
+        };
+
+        if (!isPrimary && !isBrowser) { test.worker_pid = process.pid; }
+
+        if (opts.off || options.testIDs && !options.testIDs.includes(String(test.id))) {
+            test.status = 'OFF';
+            return setTimeout(finish, 1, test);
+        }
+        if (opts.skip) {
+            test.status = 'SKIP'
+            return setTimeout(finish, 1, test);
+        }
+
+        const { check, done } = makeCheckAndDone(test);
+        test.startTime = performance.now();
+
+        try {
+            const maybePromise = fn(check, done, isPrimary);
+            if (maybePromise && typeof maybePromise.then === 'function') {
+                // Promise returned
+                return maybePromise.then(() => done()).catch(done);
+            }
+            if (maybePromise.done) { maybePromise.done(); }
+            if (maybePromise === true) { done(); }
+
+            throw new Error('Test function did not call done()');
+        }
+        catch (err) {
+            done(err);
+        }
+
+
+        function makeCheckAndDone() {
+
+            const done = makeDone();
+
+            return { check, done };
+
+
+            function check(label, value) {
+
+                if (value === undefined) { value = label; label = 'Value'; }
+
+                return {
+                    mustBe(...args) { if (!args.includes(value)) { done(`${label} must be '${args}'`); } return this; },
+                    mustNotBe(...args) { if (args.includes(value)) { done(`${label} must not be '${args}'`); } return this; },
+                    mustInclude(v) { if (!value?.includes || !value.includes(v)) { done(`${label} must include '${v}'`); } return this; },
+                    mustBeDefined() { if (value === undefined) { done(`${label} must be defined`); } return this; },
+                    mustBeUndefined() { if (value !== undefined) { done(`${label} must be undefined`); } return this; },
+                    mustBeNull() { if (value !== null) { done(`${label} must be null`); } return this; },
+                    mustBeNotNull() { if (value === null) { done(`${label} must not be null`); } return this; },
+                    mustBeTrue() { if (value !== true) { done(`${label} must be true`); } return this; },
+                    mustBeFalse() { if (value !== false) { done(`${label} must be false`); } return this; },
+                    mustBeObject() { if (typeof value !== 'object' || value === null || Array.isArray(value)) { done(`${label} must be an object`); } return this; },
+                    mustBeArray() { if (!Array.isArray(value)) { done(`${label} must be an array`); } return this; },
+                    mustBeString() { if (typeof value !== 'string') { done(`${label} must be a string`); } return this; },
+                    mustBeNumber() { if (typeof value !== 'number' || isNaN(value)) { done(`${label} must be a number`); } return this; },
+                    mustBeFunction() { if (typeof value !== 'function') { done(`${label} must be a function`); } return this; },
+                    mustBeGreaterThan(v) { if (typeof value !== 'number' || value <= v) { done(`${label} must be greater than ${v}`); } return this; },
+                    mustBeLessThan(v) { if (typeof value !== 'number' || value >= v) { done(`${label} must be less than ${v}`); } return this; },
+                    mustBeGreaterOrEqual(v) { if (typeof value !== 'number' || value < v) { done(`${label} must be greater or equal to ${v}`); } return this; },
+                    mustBeLessOrEqual(v) { if (typeof value !== 'number' || value > v) { done(`${label} must be less or equal to ${v}`); } return this; },
+                    mustMatch(regex) { if (typeof value !== 'string' || !value.match(regex)) { done(`${label} must match ${regex}`); } return this; },
+                    mustBeInstanceOf(type) { if (!(value instanceof type)) { done(`${label} must be an instance of ${type.name || type}`); } return this; },
+                    toBe(...args) { return this.mustBe(...args); },
+                    notToBe(...args) { return this.mustNotBe(...args); },
+                    toInclude(v) { return this.mustInclude(v); },
+                    toBeDefined() { return this.mustBeDefined(); },
+                    toBeUndefined() { return this.mustBeUndefined(); },
+                    toBeNull() { return this.mustBeNull(); },
+                    toBeNotNull() { return this.mustBeNotNull(); },
+                    toBeTrue() { return this.mustBeTrue(); },
+                    toBeFalse() { return this.mustBeFalse(); },
+                    toBeObject() { return this.mustBeObject(); },
+                    toBeArray() { return this.mustBeArray(); },
+                    toBeString() { return this.mustBeString(); },
+                    toBeNumber() { return this.mustBeNumber(); },
+                    toBeFunction() { return this.mustBeFunction(); },
+                    toBeGreaterThan(v) { return this.mustBeGreaterThan(v); },
+                    toBeLessThan(v) { return this.mustBeLessThan(v); },
+                    toBeGreaterOrEqual(v) { return this.mustBeGreaterOrEqual(v); },
+                    toBeLessOrEqual(v) { return this.mustBeLessOrEqual(v); },
+                    toMatch(regex) { return this.mustMatch(regex); },
+                    toBeInstanceOf(type) { return this.mustBeInstanceOf(type); },
+                    truthy() { if (!value) { done(`${label} must be truthy`); } return this; },
+                    falsy() { if (value) { done(`${label} must be falsy`); } return this; },
+                    done
+                };
+            }
+            function makeDone() {
+
+                test.timer = setTimeout(function () { done('timeout') }, opts.timeout || options.timeout);
+
+                return done;
+
+
+                function done(err) {
+                    // done called
+                    if (!test.timer) return;
+
+                    clearTimeout(test.timer);
+                    delete test.timer;
+                    test.time_ms = +(performance.now() - test.startTime).toFixed(2);
+                    delete test.startTime;
+
+                    test.status = err ? 'FAIL' : 'OK';
+
+                    if (err) { ok = false; }
+
+                    setTimeout(finish, 1, test, err);
+                }
+            }
+        }
+    }
+    function finish(test, err) {
+
+        // continue
+        if (!test && numberOfTests) { return; }
+        // add test
+        if (test) {
+            tests.push(test);
+
+            // TEST print
+            if (printToConsole && (primaryOnly && isPrimary || !primaryOnly)) {
+                if (test.status !== 'OFF') {
+                    const status = test.status === 'SKIP'
+                        ? `${color.bgGray}  SKIP  ${color.reset}`
+                        : test.status === 'OK'
+                            ? `${color.bgGreen}   OK   ${color.reset}`
+                            : `${color.bgRed} FAILED ${color.reset}`;
+
+                    console.log(`${startLengthening(test.id, 3)}. ${primaryOnly ? '' : isPrimary ? 'p' : 'w'}TEST > ${endLengthening(test.name, 50)} ${startLengthening(test.time_ms, 8)}ms ${status} ${err ? '-> ' + err : ''}`);
+                }
+            }
+        }
+        // continue
+        if (numberOfTests > tests.length) { return; }
+
+        report(tests);
+    }
+    function report(results) {
+
+        // Is Worker
+        if (!isPrimary) { return workerEnd(); }
+
+        for (let t of results) {
+
+            summary.total++;
+            if (t.status === 'OK') { summary.passed++; }
+            if (t.status === 'FAIL') { summary.failed++; ok = false; }
+            if (t.status === 'SKIP') { summary.skipped++; }
+            if (t.status === 'OFF') { summary.turned_off++ }
+            if (t.status !== 'OFF') { summary.results.push(t); }
+        }
+
+        // Only Primary Thread
+        if (primaryOnly) { return end(); }
+        // Timeout Exit
+        if (endTimer === null && !isBrowser) {
+            process.on('beforeExit', function () { end(); });
+        }
+        clearTimeout(endTimer);
+        endTimer = setTimeout(end, options.timeout);
+
+        return;
+
+
+        function workerEnd() {
+            postMessageToPrimary({ type: 'tests-request', tests }, function () {
+                if (!isBrowser) { process.exit(ok ? 0 : 1); }
+            });
+        }
+        function end() {
+
+            // totalTime
+            summary.time_ms = +(performance.now() - startTime).toFixed(2);
+
+            // END print
+            if (options.json) {
+                console.log(JSON.stringify(summary, null, 2));
+            }
+            else if (printToConsole && isPrimary) {
+                console.log(`END > ${runnerName}\t ${ok ? color.bgGreen + ' DONE ' + color.reset : color.bgRed + ' FAIL ' + color.reset}`);
+            }
+
+            // Integration
+            if (typeof options.onComplete === 'function') { options.onComplete(summary); }
+
+            if (controlServer) {
+                controlServer.close(exit)
+            }
+            else { exit(); }
+
+
+            function exit() {
+                // Exit
+                if (ok && typeof resolveRunnerPromise === 'function') { resolveRunnerPromise(summary); }
+
+                else if (typeof rejectRunnerPromise === 'function') {
+                    try { rejectRunnerPromise(new Error('Some tests failed')); } catch (_) { }
+                }
+
+                if (!ok && !options.noExit && !isBrowser) { setTimeout(() => process.exit(1), 100); }
+            }
+        }
+    }
+    function createControlServer(callback) {
+        if (!isPrimary || typeof net === 'undefined') { return null; }
+
+        const server = net.createServer(function (socket) {
+            socket.on('data', function onMsg(msg) {
+                msg = JSON.parse(msg.toString());
+
+                if (msg.type === 'tests-request') {
+                    report(msg.tests);
+                }
+            });
+        });
+        server.on('error', function (error) { console.error(error); });
+        server.listen(options.controlServerSocketPath, callback);
+
+        return server;
+    }
+    function postMessageToPrimary(msg, callback) {
+        if (isPrimary) { return null; }
+
+        const client = net.createConnection({ path: options.controlServerSocketPath }, function () {
+
+            client.write(JSON.stringify(msg));
+            client.end();
+        });
+        client.on('error', function (error) { console.error(error); });
+        client.on('close', function () { if (typeof callback === 'function') { callback(); } });
+
+        return client;
+    }
+    function makeColors(enable) {
+
+        if (!enable) return new Proxy({}, { get: function () { return ''; } });
+
+        return {
+            reset: '\x1b[0m',
+            bgGreen: '\x1b[7m\x1b[1m\x1b[32m',
+            bgRed: '\x1b[7m\x1b[1m\x1b[31m',
+            bgGray: '\x1b[7m\x1b[1m\x1b[90m',
+        };
+    }
+    function startLengthening(str, toLength) {
+
+        if (options.raw) { return str; }
+
+        str = str + '';
+
+        return ' '.repeat(toLength - str.length > 0 ? toLength - str.length : 0) + str;
+    }
+    function endLengthening(str, toLength) {
+
+        if (options.raw) { return str; }
+
+        str = str + '';
+
+        return str + ' '.repeat(toLength - str.length > 0 ? toLength - str.length : 0);
     }
 }

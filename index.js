@@ -147,6 +147,13 @@
 
                         if ("undefined" !== typeof this._isModified) { this._isModified = false; }
                         if ("undefined" !== typeof this._modified) { this._modified.length = 0; }
+                        if (this._parent && this._parent?._modified.includes(this._propertyName)) {
+                            this._parent._modified.splice(this._parent._modified.indexOf(this._propertyName), 1);
+                            if (!this._parent._modified.length && this._parent.resetChanges) {
+                                this._parent._isModified = false;
+                                this._parent.resetChanges();
+                            }
+                        }
                     }
                 },
 
@@ -179,7 +186,15 @@
 
                         if (!this._events[eventName]) { this._events[eventName] = []; }
 
-                        this._events[eventName].push(listener);
+                        if (listener.name) {
+
+                            if (!this._events[eventName].find(function (l) { return l.name === listener.name && l.isActive === isActive; })) {
+
+                                this._events[eventName].push(listener);
+                            }
+                        }
+                        else { this._events[eventName].push(listener); }
+                        
                         isActive && (listener.isActive = isActive);
 
                         return this;
@@ -419,6 +434,17 @@
         }
 
         function set(target, property, newValue, proxy) {
+
+            if (property.startsWith('-metadata')) {
+
+                // Set metadata as non-enumerable property
+                Object.defineProperty(target, property, {
+                    value: Array.isArray(newValue) ? newValue : [newValue],
+                    enumerable: false
+                });
+
+                return true;
+            }
 
             if (target.propertyIsEnumerable(property)
                 || target[property] === undefined) {
@@ -1637,12 +1663,13 @@
                 var isInitData = !fs.existsSync(filePath),
                     isFileProcessing = false,
                     isWrited = false,
-                    writeTimeout;
+                    writeTimeout,
+                    fileWatcher = null;
 
                 if (!data) { data = createDataContext({}); }
                 if (!data._isDataContext) { data = createDataContext(data); }
 
-                fs.watchFile(filePath, (/*curr, prev*/) => {
+                fileWatcher = fs.watchFile(filePath, (/*curr, prev*/) => {
 
                     if (isWrited) { isWrited = false; return; }
 
@@ -1670,7 +1697,7 @@
                     });
                 }
 
-                return data;
+                return fileWatcher;
 
 
                 function resolvePath(pathToFile) {

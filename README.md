@@ -1,44 +1,41 @@
-<div class="row w-100">
-<div class="col-12 text-center">
+<p>
+  <img src="logo/logo-432x260.png" alt="data-context logo" width="440" style="background-color:#333;border-radius:4em;border-color: #999;border-width: 0.5em;border-style: dashed;">
+</p>
 
 # data-context  
 
-Watch data changes in the browser and node.js<br>
-This manual is also available in [HTML5](https://manuel-lohmus.github.io/data-context/README.html).<br> 
+Watch data changes in the browser and node.js
 
-</div>
-</div> 
-<div class="row w-100">
-<div class="col-lg-3 d-lg-inline">
-<div class="sticky-top overflow-auto vh-lg-100">
-<div id="list-headers" class="list-group mt-2 ms-lg-2 ms-4">
+## 📚 Table of contents
 
-#### Table of contents
-- [**Introduction**](#introduction)
-- [**Features**](#features)
-- [**Installation**](#installation)
-- [**Testing**](#testing)
-- [**Usage**](#usage)
-  - [nodejs example](#nodejs-example)
-  - [browser example](#browser-example)
-- [**References**](#references)
-  - [createDataContext(data, propertyName, parent)](#createdatacontextdata-propertyname-parent)
-  - [DataContext](#datacontext)
-  - [EventListener(event)](#eventlistenerevent)
-  - [EventObject](#eventobject)
-  - [PropertyName](#propertyname)
-  - [Reviver](#reviver)
-- [**License**](#license)
-    
-</div>
-</div>
-</div>
- 
-<div class="col-lg-9 mt-2">
-<div class="ps-4 markdown-body" data-bs-spy="scroll" data-bs-target="#list-headers" data-bs-offset="0" tabindex="0">
+ - [✨ Features](#-features)
+ - [📋 Description](#-description)
+ - [📦 Installation](#-installation)
+ - [🧪 Testing](#-testing)
+ - [🚀 Usage](#-usage)
+ - [📖 API Reference](#-api-reference)
+ - [📜 License](#-license)
 
+ <p align="right"><a href="#data-context">Back to top ↑</a></p>
 
-## Introduction
+---
+
+## ✨ Features
+
+ - Create a context from the data.
+ - Listen for change events.
+ - Update the context.
+ - Parse JSON data to the context.
+ - Stringify changes to JSON.
+ - Used extended JSON data format. Metadata and comments are supported.
+
+ <p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
+
+## 📋 Description
+
+The 'data-context' module provides a way to create a data context that can watch for changes in the data.
 
 It is a simple and easy-to-use library that can be used in the browser or in node.js.
 You can create a context from the data, then listen for change events and stringify changes.
@@ -104,28 +101,38 @@ Here are some potential use cases:
  - **Description**: Handle incremental updates to JSON data, including metadata and comments.
  - **Example**: Use the library to parse, modify, and serialize JSON data with support for incremental updates and metadata.
 
-## Features
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
 
- - Create a context from the data.
- - Listen for change events.
- - Update the context.
- - Parse JSON data to the context.
- - Stringify changes to JSON.
- - Used extended JSON data format. Metadata and comments are supported.
+---
 
-## Installation
+## 📦 Installation
+
+[Available on npm](https://www.npmjs.com/package/data-context)
 
 ### nodejs:
-`npm install data-context`
+```bash
+npm install data-context
+```
 
 ### browser:
-`<script src="https://cdn.jsdelivr.net/npm/data-context@2" ></script>`
+or use CDN  (for an HTML page hosted on the server):
+```html
+<script src="./node_modules/data-context/borwser.js" type="text/javascript"></script>
+```
+or use CDN (for a standalone HTML page):
+```html
+<script src="https://cdn.jsdelivr.net/npm/data-context" type="text/javascript"></script>
+```
+or use 'tiny-https-server':
+```html
+<script async src="node_modules/data-context@2"></script>
+```
 
-### Using tiny-https-server router:
-or use ['tiny-https-server'](https://www.npmjs.com/package/tiny-https-server) router:
-`<script async src="node_modules/data-context@2"></script>`
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
 
-## Testing
+---
+
+## 🧪 Testing
 
 You can test `data-context` on your system using this command:
 
@@ -139,7 +146,11 @@ or open in your browser:
 
 `./node_modules/data-context/index.test.html`
 
-## Usage
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
+
+## 🚀 Usage
 
 ### nodejs example:
 ```javascript
@@ -335,7 +346,16 @@ intervalId = setInterval(() => {
 </html>
 ```
 
-## References
+## 📖 API Reference
+
+- [createDataContext(data, propertyName, parent)](#createdatacontextdata-propertyname-parent)
+- [DataContext](#datacontext)
+- [EventListener(event)](#eventlistenerevent)
+- [EventObject](#eventobject)
+- [PropertyName](#propertyname)
+- [Reviver](#reviver)
+
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
 
 ### *createDataContext(data, propertyName, parent)*
 
@@ -356,6 +376,11 @@ Create a data context from the data.
 - `createDataContext` {(data: any, propertyName?: string, parent?: [DataContext](#datacontext)) => [DataContext](#datacontext)} - Create a data context from the data.
 - `parse` {(str: string, reviver?: [Reviver](#reviver)) => [DataContext](#datacontext)} - Parse JSON string to the data context.
 - `stringify` {(data: any, replacer?: Replacer, space?: number) => string} - Stringify the data to JSON string.
+
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
 
 ### *DataContext*
 
@@ -382,6 +407,11 @@ The data context Proxy object.
 - `overwritingData` {(text: string, reviver?: [Reviver](#reviver) ) => void} - Overwrite the data.
 - `stringifyChanges` {(reviver?: [Reviver](#reviver), space?: number|string, onlyModified?: boolean, setUnmodified?: boolean) => string} - Stringify the changes.
 
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
+
 ### *EventListener(event)*
 
 The event listener function.
@@ -393,6 +423,11 @@ The event listener function.
 
 **Returns:**
 - {boolean} - The flag that indicates that the listener is alive.
+
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
 
 ### *EventObject*
 
@@ -413,11 +448,21 @@ The event object.
 - `oldValue` {any} - The old value.
 - `newValue` {any} - The new value.
 
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
+
 ### *PropertyName*
 
 The property name.
 
 **Type:** `string`
+
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
+
+---
 
 ### *Reviver*
 
@@ -426,19 +471,16 @@ The reviver function.
 **Type:** [`reviver`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#reviver) 
 or [`createDataContext`](#createdatacontextdata-propertyname-parent) or `null`
 
-## License
+<p align="right"><a href="#-api-reference">Back to API Reference ↑</a></p>
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
 
-This project is licensed under the MIT License.
+---
 
+## 📜 License
+
+This project is licensed under the MIT License.<br>
 Copyright &copy; Manuel Lõhmus
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate?hosted_button_id=TMZURGNWWYUBW)
+<p align="right"><a href="#data-context">Back to top ↑</a></p>
 
-Donations are welcome and will go towards further development of this project.
-
-<br>
-<br>
-<br>
-</div>
-</div>
-</div>
+---
